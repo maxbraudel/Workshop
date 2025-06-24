@@ -27,11 +27,11 @@ def movies():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        username = request.form['username']
+        email = request.form['email']
         password = request.form['password']
         
         # Authenticate user using database function
-        user = authenticate_user(username, password)
+        user = authenticate_user(email, password)
         
         if user:
             # Login successful - create session token and store in database
@@ -61,7 +61,7 @@ def login():
                 flash('Error creating session. Please try again.', 'error')
         else:
             # Login failed
-            flash('Invalid username or password!', 'error')
+            flash('Invalid email or password!', 'error')
     
     # GET request - show login form
     # Store the referrer URL in session for redirect after login

@@ -47,6 +47,22 @@ def get_user_by_username(username):
         cursor.close()
         conn.close()
 
+def get_user_by_email(email):
+    """Get user from database by email"""
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    
+    try:
+        cursor.execute("SELECT id, email, username, password_hash FROM account WHERE email = %s", (email,))
+        user = cursor.fetchone()
+        return user
+    except Exception as e:
+        print(f"Error getting user: {e}")
+        return None
+    finally:
+        cursor.close()
+        conn.close()
+
 def create_session_token(account_id, ip_address=None, user_agent=None):
     """Create a new session token in the database"""
     conn = get_db_connection()
@@ -135,9 +151,9 @@ def create_user(username, email, password):
         cursor.close()
         conn.close()
 
-def authenticate_user(username, password):
-    """Authenticate a user with username and password"""
-    user = get_user_by_username(username)
+def authenticate_user(email, password):
+    """Authenticate a user with email and password"""
+    user = get_user_by_email(email)
     
     if user and check_password_hash(user['password_hash'], password):
         return user
