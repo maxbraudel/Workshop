@@ -1,0 +1,38 @@
+<!-- templates/index.html -->
+{% extends "base.html" %}
+
+{% block title %}Home - Cinemacousas{% endblock %}
+
+{% block content %}
+  <div class="log-form">
+    <h1>Login</h1>
+    <form id="loginForm" method="post" action="{{ url_for('login') }}">
+      <div class="form-group">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required>
+      </div>
+    </form>
+
+    <div class="form-actions">
+      <button type="button" id="cancel" class="">Cancel</button>
+      <button type="submit" form="loginForm" class="">Login</button>
+    </div>
+
+    <script>
+      const previousUrl = localStorage.getItem('previousUrl');
+      console.log("Previous URL:", previousUrl);
+
+      document.getElementById('cancel').addEventListener('click', (event) => {
+        event.preventDefault();
+        if (previousUrl) {
+          window.location.href = previousUrl;
+        } else {
+          window.location.href = "/"
+        }
+      });
+
+    </script>
+  </div>
+{% endblock %}
