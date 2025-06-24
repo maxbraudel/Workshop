@@ -1,0 +1,240 @@
+<!-- templates/signup.html -->
+{% extends "base.html" %}
+
+{% block title %}Sign Up - Cinemacousas{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+      <!-- Signup Card -->
+      <div class="card login-card shadow-lg border-0">
+        <div class="card-body p-4">
+          <!-- Header with Icon -->
+          <div class="text-center mb-4">
+            <i class="fas fa-user-plus fa-3x login-icon mb-3"></i>
+            <h2 class="card-title fw-bold text-primary">Create Account</h2>
+            <p class="text-muted">Join Cinemacousas today</p>
+          </div>
+          
+          <!-- Flash messages -->
+          {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+              {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                  <i class="fas fa-{{ 'exclamation-circle' if category == 'error' else 'check-circle' }} me-2"></i>
+                  {{ message }}
+                  <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+              {% endfor %}
+            {% endif %}
+          {% endwith %}
+          
+          <!-- Signup Form -->
+          <form id="signupForm" method="post" action="{{ url_for('signup') }}">
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="firstName" class="form-label fw-bold">
+                  <i class="fas fa-user me-2"></i>First Name
+                </label>
+                <input type="text" 
+                       class="form-control form-control-lg" 
+                       id="firstName" 
+                       name="firstName" 
+                       placeholder="Enter your first name"
+                       value="{{ request.form.firstName if request.form.firstName }}"
+                       required>
+              </div>
+              
+              <div class="col-md-6 mb-3">
+                <label for="lastName" class="form-label fw-bold">
+                  <i class="fas fa-user me-2"></i>Last Name
+                </label>
+                <input type="text" 
+                       class="form-control form-control-lg" 
+                       id="lastName" 
+                       name="lastName" 
+                       placeholder="Enter your last name"
+                       value="{{ request.form.lastName if request.form.lastName }}"
+                       required>
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <label for="email" class="form-label fw-bold">
+                <i class="fas fa-envelope me-2"></i>Email Address
+              </label>
+              <input type="email" 
+                     class="form-control form-control-lg" 
+                     id="email" 
+                     name="email" 
+                     placeholder="Enter your email address"
+                     value="{{ request.form.email if request.form.email }}"
+                     required>
+            </div>
+            
+            <div class="mb-3">
+              <label for="username" class="form-label fw-bold">
+                <i class="fas fa-at me-2"></i>Username
+              </label>
+              <input type="text" 
+                     class="form-control form-control-lg" 
+                     id="username" 
+                     name="username" 
+                     placeholder="Choose a username"
+                     value="{{ request.form.username if request.form.username }}"
+                     required>
+              <div class="form-text">Username must be unique and contain only letters, numbers, and underscores.</div>
+            </div>
+            
+            <div class="mb-3">
+              <label for="password" class="form-label fw-bold">
+                <i class="fas fa-lock me-2"></i>Password
+              </label>
+              <input type="password" 
+                     class="form-control form-control-lg" 
+                     id="password" 
+                     name="password" 
+                     placeholder="Create a strong password"
+                     required>
+              <div class="form-text">Password must be at least 8 characters long.</div>
+            </div>
+            
+            <div class="mb-4">
+              <label for="confirmPassword" class="form-label fw-bold">
+                <i class="fas fa-lock me-2"></i>Confirm Password
+              </label>
+              <input type="password" 
+                     class="form-control form-control-lg" 
+                     id="confirmPassword" 
+                     name="confirmPassword" 
+                     placeholder="Confirm your password"
+                     required>
+            </div>
+            
+            <!-- Terms and Conditions -->
+            <div class="mb-4">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="termsCheck" required>
+                <label class="form-check-label" for="termsCheck">
+                  I agree to the <a href="#" class="text-primary text-decoration-none">Terms of Service</a> 
+                  and <a href="#" class="text-primary text-decoration-none">Privacy Policy</a>
+                </label>
+              </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="d-grid gap-2">
+              <button type="submit" class="btn btn-primary btn-lg">
+                <i class="fas fa-user-plus me-2"></i>
+                Create Account
+              </button>
+              <button type="button" id="cancel" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>
+                Cancel
+              </button>
+            </div>
+          </form>
+          
+          <!-- Footer -->
+          <div class="text-center mt-4 pt-3 border-top">
+            <p class="text-muted small mb-0">
+              Already have an account? 
+              <a href="{{ url_for('login') }}" class="text-primary text-decoration-none fw-bold">Sign in</a>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Password confirmation validation
+document.getElementById('confirmPassword').addEventListener('input', function() {
+  const password = document.getElementById('password').value;
+  const confirmPassword = this.value;
+  
+  if (password !== confirmPassword) {
+    this.setCustomValidity('Passwords do not match');
+    this.classList.add('is-invalid');
+  } else {
+    this.setCustomValidity('');
+    this.classList.remove('is-invalid');
+  }
+});
+
+// Username validation (letters, numbers, underscores only)
+document.getElementById('username').addEventListener('input', function() {
+  const username = this.value;
+  const usernameRegex = /^[a-zA-Z0-9_]+$/;
+  
+  if (username && !usernameRegex.test(username)) {
+    this.setCustomValidity('Username can only contain letters, numbers, and underscores');
+    this.classList.add('is-invalid');
+  } else if (username.length < 3) {
+    this.setCustomValidity('Username must be at least 3 characters long');
+    this.classList.add('is-invalid');
+  } else {
+    this.setCustomValidity('');
+    this.classList.remove('is-invalid');
+  }
+});
+
+// Password strength validation
+document.getElementById('password').addEventListener('input', function() {
+  const password = this.value;
+  
+  if (password.length < 8) {
+    this.setCustomValidity('Password must be at least 8 characters long');
+    this.classList.add('is-invalid');
+  } else {
+    this.setCustomValidity('');
+    this.classList.remove('is-invalid');
+  }
+});
+
+// Cancel button functionality
+document.querySelector('#cancel').addEventListener('click', () => {
+  if (document.referrer && document.referrer !== window.location.href) {
+    history.back();
+  } else {
+    window.location.href = "/";
+  }
+});
+
+// Escape key functionality
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape') {
+    document.querySelector('#cancel').click();
+  }
+});
+
+// Add loading state to form submission
+document.querySelector('#signupForm').addEventListener('submit', function(e) {
+  const submitBtn = this.querySelector('button[type="submit"]');
+  const originalText = submitBtn.innerHTML;
+  
+  // Check if passwords match before submitting
+  const password = document.getElementById('password').value;
+  const confirmPassword = document.getElementById('confirmPassword').value;
+  
+  if (password !== confirmPassword) {
+    e.preventDefault();
+    document.getElementById('confirmPassword').focus();
+    return;
+  }
+  
+  submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Creating Account...';
+  submitBtn.disabled = true;
+  
+  // Re-enable if there's an error (form doesn't actually submit)
+  setTimeout(() => {
+    if (submitBtn.disabled) {
+      submitBtn.innerHTML = originalText;
+      submitBtn.disabled = false;
+    }
+  }, 5000);
+});
+</script>
+{% endblock %}

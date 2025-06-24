@@ -5,7 +5,9 @@ from database import (
     create_session_token,
     invalidate_session_token,
     validate_session_token,
-    get_all_movies
+    get_all_movies,
+    add_account,
+    validate_signup_data
 )
 
 app = Flask(__name__)
@@ -88,6 +90,59 @@ def logout():
         return redirect(redirect_url)
     else:
         return redirect(url_for('index'))
+
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    if request.method == 'POST':
+        # Get form data
+        first_name = request.form.get('firstName', '').strip()
+        last_name = request.form.get('lastName', '').strip()
+        email = request.form.get('email', '').strip().lower()
+        username = request.form.get('username', '').strip()
+        password = request.form.get('password', '')
+        confirm_password = request.form.get('confirmPassword', '')
+        
+        # Validate the form data
+        validation_errors = validate_signup_data(first_name, last_name, email, username, password, confirm_password)
+        
+        if validation_errors:
+            for error in validation_errors:
+                flash(error, 'error')
+            return render_template('signup.html')
+        
+        # Try to create the account
+        result = add_account(first_name, last_name, email, username, password)
+        
+        if result['success']:
+            user = result['user']
+            
+            # Log the user in automatically after successful signup
+            ip_address = request.remote_addr
+            user_agent = request.headers.get('User-Agent')
+            session_token = create_session_token(user['id'], ip_address, user_agent)
+            
+            if session_token:
+                # Store session info in Flask session
+                session['logged_in'] = True
+                session['user_id'] = user['id']
+                session['username'] = user['username']
+                session['session_token'] = session_token
+                
+                # Show success message
+                flash(f'Welcome to Cinemacousas, {user["first_name"]}! Your account has been created successfully.', 'success')
+                
+                # Redirect to home page
+                return redirect(url_for('index'))
+            else:
+                flash('Account created successfully, but there was an error logging you in. Please try logging in manually.', 'info')
+                return redirect(url_for('login'))
+        else:
+            # Account creation failed
+            flash(result['error'], 'error')
+            return render_template('signup.html')
+    
+    # GET request - show signup form
+    return render_template('signup.html')
 
 # Helper function to check if user is logged in
 def is_logged_in():

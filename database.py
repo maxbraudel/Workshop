@@ -243,3 +243,92 @@ def analyze_movie_table():
     finally:
         cursor.close()
         conn.close()
+
+def add_account(first_name, last_name, email, username, password):
+    """Create a new user account with full details"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    try:
+        # Check if email already exists
+        cursor.execute("SELECT id FROM account WHERE email = %s", (email,))
+        if cursor.fetchone():
+            return {"success": False, "error": "Email address is already registered"}
+        
+        # Check if username already exists
+        cursor.execute("SELECT id FROM account WHERE username = %s", (username,))
+        if cursor.fetchone():
+            return {"success": False, "error": "Username is already taken"}
+        
+        # Hash the password
+        password_hash = generate_password_hash(password)
+        
+        # Insert new account
+        cursor.execute("""
+            INSERT INTO account (first_name, last_name, email, username, password_hash)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (first_name, last_name, email, username, password_hash))
+        
+        conn.commit()
+        user_id = cursor.lastrowid
+        
+        # Return the created user data
+        cursor.execute("SELECT id, first_name, last_name, email, username FROM account WHERE id = %s", (user_id,))
+        user_data = cursor.fetchone()
+        
+        return {
+            "success": True, 
+            "user": {
+                "id": user_data[0],
+                "first_name": user_data[1],
+                "last_name": user_data[2],
+                "email": user_data[3],
+                "username": user_data[4]
+            }
+        }
+        
+    except mysql.connector.IntegrityError as e:
+        if "email" in str(e).lower():
+            return {"success": False, "error": "Email address is already registered"}
+        elif "username" in str(e).lower():
+            return {"success": False, "error": "Username is already taken"}
+        else:
+            return {"success": False, "error": "Account creation failed due to duplicate data"}
+    except Exception as e:
+        print(f"Error creating account: {e}")
+        return {"success": False, "error": "An error occurred while creating your account. Please try again."}
+    finally:
+        cursor.close()
+        conn.close()
+
+def validate_signup_data(first_name, last_name, email, username, password, confirm_password):
+    """Validate signup form data"""
+    errors = []
+    
+    # Name validation
+    if not first_name or len(first_name.strip()) < 2:
+        errors.append("First name must be at least 2 characters long")
+    
+    if not last_name or len(last_name.strip()) < 2:
+        errors.append("Last name must be at least 2 characters long")
+    
+    # Email validation (basic)
+    if not email or "@" not in email or "." not in email:
+        errors.append("Please enter a valid email address")
+    
+    # Username validation
+    if not username or len(username) < 3:
+        errors.append("Username must be at least 3 characters long")
+    
+    import re
+    if not re.match("^[a-zA-Z0-9_]+$", username):
+        errors.append("Username can only contain letters, numbers, and underscores")
+    
+    # Password validation
+    if not password or len(password) < 8:
+        errors.append("Password must be at least 8 characters long")
+    
+    if password != confirm_password:
+        errors.append("Passwords do not match")
+    
+    return errors

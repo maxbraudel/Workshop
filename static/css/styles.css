@@ -33,7 +33,6 @@
   --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
   --shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
   --shadow-lg: 0 1rem 3rem rgba(0, 0, 0, 0.175);
-  --navbar-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   
   /* Spacing */
   --navbar-height: 4rem;
@@ -64,7 +63,6 @@ body {
    NAVIGATION STYLES
    ================================ */
 .navbar {
-  box-shadow: var(--navbar-shadow);
   height: var(--navbar-height);
   width: 100vw;
   background-color: var(--bg-white) !important;
@@ -162,7 +160,7 @@ body {
   align-items: center;
   justify-content: center;
   text-align: center;
-  height: calc(100vh - var(--navbar-height));
+  height: calc(100vh - 2 * var(--navbar-height));
   background: linear-gradient(135deg, var(--bg-light) 0%, var(--white) 100%);
   position: relative;
 }
@@ -245,6 +243,35 @@ h2 {
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 0.5rem;
+}
+
+/* ================================
+   FORM VALIDATION STYLES
+   ================================ */
+.form-control.is-invalid {
+  border-color: var(--danger-color);
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+.form-control.is-valid {
+  border-color: var(--success-color);
+  box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25);
+}
+
+.form-text {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+}
+
+.form-check-input:checked {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.form-check-label {
+  font-size: 0.9rem;
+  color: var(--text-primary);
 }
 
 /* ================================
