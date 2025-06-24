@@ -1,25 +1,17 @@
-import mysql.connector
-from flask import Flask, render_template
-
-conn = mysql.connector.connect(
-    host="82.66.24.184",
-    port=3305,
-    user="cinemacousas",
-    password="password",
-    database="Cinemacousas"
+from flask import Flask, render_template, request, redirect, url_for, session, flash
+from database import (
+    test_database_connection,
+    authenticate_user,
+    create_session_token,
+    invalidate_session_token,
+    validate_session_token
 )
 
-cursor = conn.cursor()
-cursor.execute("SHOW TABLES")
-
-tables = cursor.fetchall()
-for table in tables:
-    print(table[0])
-
-cursor.close()
-conn.close()
-
 app = Flask(__name__)
+app.secret_key = 'your-secret-key-change-this-in-production'  # Required for sessions
+
+# Test database connection
+test_database_connection()
 
 @app.route('/')
 def index():
@@ -29,9 +21,61 @@ def index():
 def movies():
     return render_template('movies.html', storeUrl=True)
 
-@app.route('/login')
+@app.route('/login', methods=['GET', 'POST'])
 def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        
+        # Authenticate user using database function
+        user = authenticate_user(username, password)
+        
+        if user:
+            # Login successful - create session token and store in database
+            ip_address = request.remote_addr
+            user_agent = request.headers.get('User-Agent')
+            session_token = create_session_token(user['id'], ip_address, user_agent)
+            
+            if session_token:
+                # Store session info in Flask session
+                session['logged_in'] = True
+                session['user_id'] = user['id']
+                session['username'] = user['username']
+                session['session_token'] = session_token
+                flash('Login successful!', 'success')
+                return redirect(url_for('index'))
+            else:
+                flash('Error creating session. Please try again.', 'error')
+        else:
+            # Login failed
+            flash('Invalid username or password!', 'error')
+            return render_template('login.html')
+    
+    # GET request - show login form
     return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    # Invalidate the session token in the database
+    if 'session_token' in session:
+        invalidate_session_token(session['session_token'])
+    
+    # Clear the session
+    session.clear()
+    flash('You have been logged out.', 'info')
+    return redirect(url_for('index'))
+
+# Helper function to check if user is logged in
+def is_logged_in():
+    return 'logged_in' in session and session['logged_in']
+
+# Make is_logged_in available in all templates
+@app.context_processor
+def inject_user():
+    return dict(
+        is_logged_in=is_logged_in(),
+        current_user=session.get('username', None)
+    )
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5500)

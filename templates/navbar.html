@@ -15,8 +15,16 @@
     </ul>
   </div>
 
-  <div class="ms-auto">
-    <button class="btn btn-outline-primary me-2" onclick='window.location.href="{{ url_for("login") }}"'>Log In</button>
-    <button class="btn btn-primary">My Tickets</button>
+  <div class="ms-auto flex flex-row align-items-center vertil items-center">
+    {% if is_logged_in %}
+      <!-- User is logged in -->
+      <span class="navbar-text me-3">Welcome {{ current_user }}</span>
+      <button class="btn btn-outline-danger me-2" onclick='window.location.href="{{ url_for("logout") }}"'>Log Out</button>
+      <button class="btn btn-primary">My Tickets</button>
+    {% else %} 
+      <!-- User is not logged in -->
+      <button class="btn btn-outline-primary me-2" onclick='window.location.href="{{ url_for("login") }}"'>Log In</button>
+      <button class="btn btn-primary">My Tickets</button>
+    {% endif %}
   </div>
 </nav>
