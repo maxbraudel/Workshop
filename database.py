@@ -183,3 +183,47 @@ def get_user_sessions(user_id):
     finally:
         cursor.close()
         conn.close()
+
+def get_all_movies():
+    """Get all movies from the database"""
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    
+    try:
+        cursor.execute("SELECT * FROM movie ORDER BY name")
+        movies = cursor.fetchall()
+        return movies
+    except Exception as e:
+        print(f"Error getting movies: {e}")
+        return []
+    finally:
+        cursor.close()
+        conn.close()
+
+def analyze_movie_table():
+    """Analyze the movie table structure and sample data"""
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    
+    try:
+        # Get table structure
+        cursor.execute("DESCRIBE movie")
+        columns = cursor.fetchall()
+        print("Movie table structure:")
+        for col in columns:
+            print(f"  {col['Field']}: {col['Type']} (Null: {col['Null']}, Key: {col['Key']})")
+        
+        # Get sample data
+        cursor.execute("SELECT * FROM movie LIMIT 3")
+        sample_movies = cursor.fetchall()
+        print("\nSample movie data:")
+        for movie in sample_movies:
+            print(f"  Movie: {movie}")
+            
+        return columns, sample_movies
+    except Exception as e:
+        print(f"Error analyzing movie table: {e}")
+        return [], []
+    finally:
+        cursor.close()
+        conn.close()

@@ -79,14 +79,24 @@
         <!-- Flash messages -->
         {% with messages = get_flashed_messages(with_categories=true) %}
           {% if messages %}
-            <div class="container mt-3">
-              {% for category, message in messages %}
-                <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
-                  {{ message }}
-                  <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-              {% endfor %}
-            </div>
+            <script>
+              document.addEventListener('DOMContentLoaded', function() {
+                {% for category, message in messages %}
+                  Toastify({
+                    text: "{{ message }}",
+                    duration: 4000,
+                    close: true,
+                    gravity: "bottom",
+                    position: "right",
+                    stopOnFocus: true,
+                    style: {
+                      background: {% if category == 'success' %}"linear-gradient(to right, #00b09b, #96c93d)"{% elif category == 'error' %}"linear-gradient(to right, #ff5f6d, #ffc371)"{% elif category == 'info' %}"linear-gradient(to right, #667eea, #764ba2)"{% else %}"linear-gradient(to right, #11998e, #38ef7d)"{% endif %}
+                    },
+                    onClick: function(){} // Callback after click
+                  }).showToast();
+                {% endfor %}
+              });
+            </script>
           {% endif %}
         {% endwith %}
         
@@ -102,5 +112,30 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    
+    <script>
+        // Custom toast function for easy use
+        function showToast(message, type = 'success') {
+            const colors = {
+                success: "linear-gradient(to right, #00b09b, #96c93d)",
+                error: "linear-gradient(to right, #ff5f6d, #ffc371)",
+                info: "linear-gradient(to right, #667eea, #764ba2)",
+                warning: "linear-gradient(to right, #f093fb, #f5576c)"
+            };
+            
+            Toastify({
+                text: message,
+                duration: 4000,
+                close: true,
+                gravity: "top",
+                position: "bottom",
+                stopOnFocus: true,
+                style: {
+                    background: colors[type] || colors.success
+                },
+                onClick: function(){}
+            }).showToast();
+        }
+    </script>
 </body>
 </html>

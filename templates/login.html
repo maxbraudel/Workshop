@@ -20,6 +20,9 @@
     {% endwith %}
     
     <form id="loginForm" method="post" action="{{ url_for('login') }}">
+      <!-- Hidden field to store previous URL -->
+      <input type="hidden" name="previous_url" value="{{ previous_url }}">
+      
       <div class="form-group">
         <label for="username">Username:</label>
         <input type="text" id="username" name="username" required>
@@ -34,18 +37,16 @@
     </div>
 
     <script>
-      const previousUrl = localStorage.getItem('previousUrl');
+      const previousUrl = "{{ previous_url }}";
       console.log("Previous URL:", previousUrl);
 
-      document.getElementById('cancel').addEventListener('click', (event) => {
-        event.preventDefault();
-        if (previousUrl) {
+      document.querySelector('#cancel').addEventListener('click', (event) => {
+        if (previousUrl && previousUrl !== "null" && previousUrl !== "{{ url_for('login') }}") {
           window.location.href = previousUrl;
         } else {
           window.location.href = "/"
         }
       });
-
     </script>
   </div>
 {% endblock %}

@@ -4,7 +4,8 @@ from database import (
     authenticate_user,
     create_session_token,
     invalidate_session_token,
-    validate_session_token
+    validate_session_token,
+    get_all_movies
 )
 
 app = Flask(__name__)
@@ -19,13 +20,16 @@ def index():
 
 @app.route('/movies')
 def movies():
-    return render_template('movies.html', storeUrl=True)
+    # Get all movies from the database
+    movies_list = get_all_movies()
+    return render_template('movies.html', movies=movies_list, storeUrl=True)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
+        previous_url = request.form.get('previous_url', '/')  # Get the previous URL from form
         
         # Authenticate user using database function
         user = authenticate_user(username, password)
@@ -42,17 +46,25 @@ def login():
                 session['user_id'] = user['id']
                 session['username'] = user['username']
                 session['session_token'] = session_token
-                flash('Login successful!', 'success')
-                return redirect(url_for('index'))
+                
+                # Show success message
+                flash('Login successful! Welcome back, ' + user['username'] + '!', 'success')
+                
+                # Redirect to previous URL or home page
+                if previous_url and previous_url != 'null' and previous_url != request.url:
+                    return redirect(previous_url)
+                else:
+                    return redirect(url_for('index'))
             else:
                 flash('Error creating session. Please try again.', 'error')
         else:
             # Login failed
             flash('Invalid username or password!', 'error')
-            return render_template('login.html')
     
     # GET request - show login form
-    return render_template('login.html')
+    # Store the referrer URL to redirect back after login
+    referrer = request.referrer or url_for('index')
+    return render_template('login.html', previous_url=referrer)
 
 @app.route('/logout')
 def logout():

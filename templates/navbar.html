@@ -15,12 +15,27 @@
     </ul>
   </div>
 
-  <div class="ms-auto flex flex-row align-items-center vertil items-center">
+  <div class="ms-auto d-flex align-items-center">
     {% if is_logged_in %}
       <!-- User is logged in -->
-      <span class="navbar-text me-3">Welcome {{ current_user }}</span>
-      <button class="btn btn-outline-danger me-2" onclick='window.location.href="{{ url_for("logout") }}"'>Log Out</button>
-      <button class="btn btn-primary">My Tickets</button>
+      <button class="btn btn-primary me-3">My Tickets</button>
+      
+      <!-- User Profile Dropdown -->
+      <div class="dropdown position-static">
+        <button class="btn p-0 border-0 bg-transparent" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+          <img src="/static/images/default_user.jpg" alt="User Profile" class="rounded-circle" width="40" height="40" style="object-fit: cover;">
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end position-absolute" aria-labelledby="userDropdown" style="min-width: 200px; top: calc(100% + 15px); right: 15px; margin-top: 0;">
+          <li class="dropdown-header">
+            <strong>{{ current_user }}</strong>
+          </li>
+          <li><hr class="dropdown-divider"></li>
+          <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>Profile</a></li>
+          <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Settings</a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt me-2"></i>Log Out</a></li>
+        </ul>
+      </div>
     {% else %} 
       <!-- User is not logged in -->
       <button class="btn btn-outline-primary me-2" onclick='window.location.href="{{ url_for("login") }}"'>Log In</button>
