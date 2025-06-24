@@ -1,52 +1,184 @@
-<!-- templates/index.html -->
+<!-- templates/login.html -->
 {% extends "base.html" %}
 
-{% block title %}Home - Cinemacousas{% endblock %}
+{% block title %}Login - Cinemacousas{% endblock %}
 
 {% block content %}
-  <div class="log-form">
-    <h1>Login</h1>
-    
-    <!-- Flash messages -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        {% for category, message in messages %}
-          <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+      <!-- Login Card -->
+      <div class="card shadow-lg border-0">
+        <div class="card-body p-4">
+          <!-- Header with Icon -->
+          <div class="text-center mb-4">
+            <i class="fas fa-user-circle fa-3x text-primary mb-3"></i>
+            <h2 class="card-title fw-bold text-primary">Welcome Back</h2>
+            <p class="text-muted">Sign in to your account</p>
           </div>
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
-    
-    <form id="loginForm" method="post" action="{{ url_for('login') }}">
-      <!-- Hidden field to store previous URL -->
-      <input type="hidden" name="previous_url" value="{{ previous_url }}">
-      
-      <div class="form-group">
-        <label for="username">Username:</label>
-        <input type="text" id="username" name="username" required>
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password" required>
+          
+          <!-- Flash messages -->
+          {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+              {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                  <i class="fas fa-{{ 'exclamation-circle' if category == 'error' else 'check-circle' }} me-2"></i>
+                  {{ message }}
+                  <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+              {% endfor %}
+            {% endif %}
+          {% endwith %}
+          
+          <!-- Login Form -->
+          <form id="loginForm" method="post" action="{{ url_for('login') }}">
+            <div class="mb-3">
+              <label for="username" class="form-label fw-bold">
+                <i class="fas fa-user me-2"></i>Username
+              </label>
+              <input type="text" 
+                     class="form-control form-control-lg" 
+                     id="username" 
+                     name="username" 
+                     placeholder="Enter your username"
+                     required>
+            </div>
+            
+            <div class="mb-4">
+              <label for="password" class="form-label fw-bold">
+                <i class="fas fa-lock me-2"></i>Password
+              </label>
+              <input type="password" 
+                     class="form-control form-control-lg" 
+                     id="password" 
+                     name="password" 
+                     placeholder="Enter your password"
+                     required>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="d-grid gap-2">
+              <button type="submit" class="btn btn-primary btn-lg">
+                <i class="fas fa-sign-in-alt me-2"></i>
+                Sign In
+              </button>
+              <button type="button" id="cancel" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>
+                Cancel
+              </button>
+            </div>
+          </form>
+          
+          <!-- Footer -->
+          <div class="text-center mt-4 pt-3 border-top">
+            <p class="text-muted small mb-0">
+              Don't have an account? 
+              <a href="#" class="text-primary text-decoration-none fw-bold">Sign up</a>
+            </p>
+          </div>
+        </div>
       </div>
-    </form>
-
-    <div class="form-actions">
-      <button type="button" id="cancel" class="">Cancel</button>
-      <button type="submit" form="loginForm" class="">Login</button>
     </div>
-
-    <script>
-      const previousUrl = "{{ previous_url }}";
-      console.log("Previous URL:", previousUrl);
-
-      document.querySelector('#cancel').addEventListener('click', (event) => {
-        if (previousUrl && previousUrl !== "null" && previousUrl !== "{{ url_for('login') }}") {
-          window.location.href = previousUrl;
-        } else {
-          window.location.href = "/"
-        }
-      });
-    </script>
   </div>
+</div>
+
+<!-- Custom Styles -->
+<style>
+.card {
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  border-radius: 1rem;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 35px rgba(0,0,0,0.15) !important;
+}
+
+.form-control {
+  border-radius: 0.75rem;
+  border: 2px solid #e9ecef;
+  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.form-control:focus {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+.btn {
+  border-radius: 0.75rem;
+  font-weight: 600;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+  border: none;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #0b5ed7 0%, #0a58ca 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+}
+
+.btn-outline-secondary:hover {
+  transform: translateY(-1px);
+}
+
+.text-primary {
+  color: #2c3e50 !important;
+}
+
+.fa-user-circle {
+  color: #6c757d;
+}
+
+/* Responsive adjustments */
+@media (max-width: 576px) {
+  .container {
+    padding: 1rem;
+  }
+  
+  .card-body {
+    padding: 2rem 1.5rem !important;
+  }
+}
+</style>
+
+<script>
+// Much smoother approach using browser history
+document.querySelector('#cancel').addEventListener('click', () => {
+  // Check if there's a previous page in history
+  if (document.referrer && document.referrer !== window.location.href) {
+    history.back(); // Go back to previous page smoothly
+  } else {
+    window.location.href = "/"; // Fallback to home
+  }
+});
+
+// Optional: Add Enter key support for better UX
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape') {
+    document.querySelector('#cancel').click();
+  }
+});
+
+// Add loading state to form submission
+document.querySelector('#loginForm').addEventListener('submit', function(e) {
+  const submitBtn = this.querySelector('button[type="submit"]');
+  const originalText = submitBtn.innerHTML;
+  
+  submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Signing In...';
+  submitBtn.disabled = true;
+  
+  // Re-enable if there's an error (form doesn't actually submit)
+  setTimeout(() => {
+    if (submitBtn.disabled) {
+      submitBtn.innerHTML = originalText;
+      submitBtn.disabled = false;
+    }
+  }, 5000);
+});
+</script>
 {% endblock %}
