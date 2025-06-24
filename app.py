@@ -29,7 +29,6 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        previous_url = request.form.get('previous_url', '/')  # Get the previous URL from form
         
         # Authenticate user using database function
         user = authenticate_user(username, password)
@@ -50,9 +49,12 @@ def login():
                 # Show success message
                 flash('Login successful! Welcome back, ' + user['username'] + '!', 'success')
                 
+                # Get the redirect URL from session (stored when GET request was made)
+                redirect_url = session.pop('login_redirect_url', None)
+                
                 # Redirect to previous URL or home page
-                if previous_url and previous_url != 'null' and previous_url != request.url:
-                    return redirect(previous_url)
+                if redirect_url and redirect_url != request.url and redirect_url != url_for('login'):
+                    return redirect(redirect_url)
                 else:
                     return redirect(url_for('index'))
             else:
@@ -62,12 +64,17 @@ def login():
             flash('Invalid username or password!', 'error')
     
     # GET request - show login form
-    # Store the referrer URL to redirect back after login
-    referrer = request.referrer or url_for('index')
-    return render_template('login.html', previous_url=referrer)
+    # Store the referrer URL in session for redirect after login
+    if request.referrer and request.referrer != request.url:
+        session['login_redirect_url'] = request.referrer
+    
+    return render_template('login.html')
 
 @app.route('/logout')
 def logout():
+    # Store the referrer URL before clearing the session
+    redirect_url = request.referrer
+    
     # Invalidate the session token in the database
     if 'session_token' in session:
         invalidate_session_token(session['session_token'])
@@ -75,7 +82,12 @@ def logout():
     # Clear the session
     session.clear()
     flash('You have been logged out.', 'info')
-    return redirect(url_for('index'))
+    
+    # Redirect back to previous page or home if no referrer
+    if redirect_url and redirect_url != request.url:
+        return redirect(redirect_url)
+    else:
+        return redirect(url_for('index'))
 
 # Helper function to check if user is logged in
 def is_logged_in():
