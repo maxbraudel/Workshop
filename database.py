@@ -2,6 +2,26 @@ import mysql.connector
 from werkzeug.security import check_password_hash, generate_password_hash
 import secrets
 from datetime import datetime, timedelta
+import logging
+
+# Configure logging for database errors
+logging.basicConfig(level=logging.ERROR)
+logger = logging.getLogger(__name__)
+
+def handle_db_errors(default_return=None):
+    """Decorator to handle database errors consistently"""
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except mysql.connector.Error as e:
+                logger.error(f"Database error in {func.__name__}: {e}")
+                return default_return
+            except Exception as e:
+                logger.error(f"Unexpected error in {func.__name__}: {e}")
+                return default_return
+        return wrapper
+    return decorator
 
 # Database connection configuration
 DB_CONFIG = {
@@ -31,6 +51,7 @@ def test_database_connection():
         print(f"❌ Database connection error: {e}")
         return False
 
+@handle_db_errors(default_return=None)
 def get_user_by_username(username):
     """Get user from database by username"""
     conn = get_db_connection()
@@ -40,13 +61,11 @@ def get_user_by_username(username):
         cursor.execute("SELECT id, email, username, password_hash FROM account WHERE username = %s", (username,))
         user = cursor.fetchone()
         return user
-    except Exception as e:
-        print(f"Error getting user: {e}")
-        return None
     finally:
         cursor.close()
         conn.close()
 
+@handle_db_errors(default_return=None)
 def get_user_by_email(email):
     """Get user from database by email"""
     conn = get_db_connection()
@@ -56,13 +75,11 @@ def get_user_by_email(email):
         cursor.execute("SELECT id, email, username, password_hash FROM account WHERE email = %s", (email,))
         user = cursor.fetchone()
         return user
-    except Exception as e:
-        print(f"Error getting user: {e}")
-        return None
     finally:
         cursor.close()
         conn.close()
 
+@handle_db_errors(default_return=None)
 def create_session_token(account_id, ip_address=None, user_agent=None):
     """Create a new session token in the database"""
     conn = get_db_connection()
@@ -80,13 +97,11 @@ def create_session_token(account_id, ip_address=None, user_agent=None):
         
         conn.commit()
         return session_token
-    except Exception as e:
-        print(f"Error creating session: {e}")
-        return None
     finally:
         cursor.close()
         conn.close()
 
+@handle_db_errors(default_return=False)
 def invalidate_session_token(session_token):
     """Mark a session token as inactive"""
     conn = get_db_connection()
@@ -99,12 +114,12 @@ def invalidate_session_token(session_token):
             WHERE session_token = %s
         """, (session_token,))
         conn.commit()
-    except Exception as e:
-        print(f"Error invalidating session: {e}")
+        return True
     finally:
         cursor.close()
         conn.close()
 
+@handle_db_errors(default_return=None)
 def validate_session_token(session_token):
     """Validate if a session token is active and not expired"""
     conn = get_db_connection()
@@ -121,13 +136,11 @@ def validate_session_token(session_token):
         """, (session_token,))
         
         return cursor.fetchone()
-    except Exception as e:
-        print(f"Error validating session: {e}")
-        return None
     finally:
         cursor.close()
         conn.close()
 
+@handle_db_errors(default_return=None)
 def create_user(username, email, password):
     """Create a new user account"""
     conn = get_db_connection()
@@ -144,13 +157,11 @@ def create_user(username, email, password):
         
         conn.commit()
         return cursor.lastrowid
-    except Exception as e:
-        print(f"Error creating user: {e}")
-        return None
     finally:
         cursor.close()
         conn.close()
 
+@handle_db_errors(default_return=None)
 def authenticate_user(email, password):
     """Authenticate a user with email and password"""
     user = get_user_by_email(email)
@@ -159,6 +170,7 @@ def authenticate_user(email, password):
         return user
     return None
 
+@handle_db_errors(default_return=False)
 def cleanup_expired_sessions():
     """Clean up expired sessions from the database"""
     conn = get_db_connection()
@@ -172,13 +184,13 @@ def cleanup_expired_sessions():
         """)
         conn.commit()
         affected_rows = cursor.rowcount
-        print(f"Cleaned up {affected_rows} expired sessions.")
-    except Exception as e:
-        print(f"Error cleaning up sessions: {e}")
+        logger.info(f"Cleaned up {affected_rows} expired sessions.")
+        return True
     finally:
         cursor.close()
         conn.close()
 
+@handle_db_errors(default_return=[])
 def get_user_sessions(user_id):
     """Get all active sessions for a user"""
     conn = get_db_connection()
@@ -193,13 +205,11 @@ def get_user_sessions(user_id):
         """, (user_id,))
         
         return cursor.fetchall()
-    except Exception as e:
-        print(f"Error getting user sessions: {e}")
-        return []
     finally:
         cursor.close()
         conn.close()
 
+@handle_db_errors(default_return=[])
 def get_all_movies():
     """Get all movies from the database"""
     conn = get_db_connection()
@@ -209,13 +219,11 @@ def get_all_movies():
         cursor.execute("SELECT * FROM movie ORDER BY name")
         movies = cursor.fetchall()
         return movies
-    except Exception as e:
-        print(f"Error getting movies: {e}")
-        return []
     finally:
         cursor.close()
         conn.close()
 
+@handle_db_errors(default_return=([], []))
 def analyze_movie_table():
     """Analyze the movie table structure and sample data"""
     conn = get_db_connection()
@@ -237,19 +245,16 @@ def analyze_movie_table():
             print(f"  Movie: {movie}")
             
         return columns, sample_movies
-    except Exception as e:
-        print(f"Error analyzing movie table: {e}")
-        return [], []
     finally:
         cursor.close()
         conn.close()
 
 def add_account(first_name, last_name, email, username, password):
     """Create a new user account with full details"""
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    
     try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
         # Check if email already exists
         cursor.execute("SELECT id FROM account WHERE email = %s", (email,))
         if cursor.fetchone():
@@ -288,18 +293,24 @@ def add_account(first_name, last_name, email, username, password):
         }
         
     except mysql.connector.IntegrityError as e:
+        logger.error(f"Database integrity error in add_account: {e}")
         if "email" in str(e).lower():
             return {"success": False, "error": "Email address is already registered"}
         elif "username" in str(e).lower():
             return {"success": False, "error": "Username is already taken"}
         else:
             return {"success": False, "error": "Account creation failed due to duplicate data"}
+    except mysql.connector.Error as e:
+        logger.error(f"Database error in add_account: {e}")
+        return {"success": False, "error": "Server unavailable, please try again later."}
     except Exception as e:
-        print(f"Error creating account: {e}")
-        return {"success": False, "error": "An error occurred while creating your account. Please try again."}
+        logger.error(f"Unexpected error in add_account: {e}")
+        return {"success": False, "error": "Server unavailable, please try again later."}
     finally:
-        cursor.close()
-        conn.close()
+        if 'cursor' in locals():
+            cursor.close()
+        if 'conn' in locals():
+            conn.close()
 
 def validate_signup_identifiers(first_name, last_name, email, username):
     """Validate signup form identifiers (first name, last name, email, username)"""
@@ -326,10 +337,10 @@ def validate_signup_identifiers(first_name, last_name, email, username):
     
     # Check database constraints if basic validation passes
     if not errors:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
         try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            
             # Check if email already exists
             cursor.execute("SELECT id FROM account WHERE email = %s", (email,))
             if cursor.fetchone():
@@ -340,12 +351,17 @@ def validate_signup_identifiers(first_name, last_name, email, username):
             if cursor.fetchone():
                 errors.append("Username is already taken")
                 
+        except mysql.connector.Error as e:
+            logger.error(f"Database error in validate_signup_identifiers: {e}")
+            errors.append("Server unavailable, please try again later")
         except Exception as e:
-            print(f"Error checking database constraints: {e}")
-            errors.append("Unable to verify email and username availability. Please try again.")
+            logger.error(f"Unexpected error in validate_signup_identifiers: {e}")
+            errors.append("Server unavailable, please try again later")
         finally:
-            cursor.close()
-            conn.close()
+            if 'cursor' in locals():
+                cursor.close()
+            if 'conn' in locals():
+                conn.close()
     
     return errors
 
@@ -375,3 +391,50 @@ def validate_signup_data(first_name, last_name, email, username, password, confi
     errors.extend(password_errors)
     
     return errors
+
+def validate_login_data(email, password):
+    """
+    Validate login credentials and return specific error information
+    Returns a dictionary with 'success', 'user', and 'error' keys
+    """
+    # Basic input validation
+    if not email or not email.strip():
+        return {"success": False, "error": "Please enter your email address", "user": None}
+    
+    if not password or not password.strip():
+        return {"success": False, "error": "Please enter your password", "user": None}
+    
+    # Try to get user from database
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        # Check if email exists in database
+        cursor.execute("SELECT id, email, username, password_hash FROM account WHERE email = %s", (email,))
+        user = cursor.fetchone()
+        
+        if not user:
+            # Email not found in database
+            return {"success": False, "error": "No account found with this email address", "user": None}
+        
+        # Email exists, check password
+        if check_password_hash(user['password_hash'], password):
+            # Password is correct
+            return {"success": True, "error": None, "user": user}
+        else:
+            # Password is incorrect
+            return {"success": False, "error": "Incorrect password", "user": None}
+            
+    except mysql.connector.Error as e:
+        # Database connection or query error
+        logger.error(f"Database error in validate_login_data: {e}")
+        return {"success": False, "error": "Server unavailable, please try again later", "user": None}
+    except Exception as e:
+        # Unexpected error
+        logger.error(f"Unexpected error in validate_login_data: {e}")
+        return {"success": False, "error": "Server unavailable, please try again later", "user": None}
+    finally:
+        if 'cursor' in locals():
+            cursor.close()
+        if 'conn' in locals():
+            conn.close()

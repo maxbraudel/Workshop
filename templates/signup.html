@@ -349,11 +349,16 @@ document.getElementById('password').addEventListener('input', function() {
   }
 });
 
-// Cancel button functionality
-document.querySelector('#cancel').addEventListener('click', () => {
-  if (document.referrer && document.referrer !== window.location.href) {
-    history.back();
-  } else {
+// Cancel button functionality with smart redirect
+document.querySelector('#cancel').addEventListener('click', async () => {
+  try {
+    // Get the correct redirect URL from the server
+    const response = await fetch('/get_cancel_redirect');
+    const data = await response.json();
+    window.location.href = data.redirect_url;
+  } catch (error) {
+    // Fallback to home page if API call fails
+    console.warn('Failed to get redirect URL, falling back to home:', error);
     window.location.href = "/";
   }
 });

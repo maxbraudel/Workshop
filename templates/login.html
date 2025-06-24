@@ -83,13 +83,17 @@
 </div>
 
 <script>
-// Much smoother approach using browser history
-document.querySelector('#cancel').addEventListener('click', () => {
-  // Check if there's a previous page in history
-  if (document.referrer && document.referrer !== window.location.href) {
-    history.back(); // Go back to previous page smoothly
-  } else {
-    window.location.href = "/"; // Fallback to home
+// Smart redirect that avoids auth pages
+document.querySelector('#cancel').addEventListener('click', async () => {
+  try {
+    // Get the correct redirect URL from the server
+    const response = await fetch('/get_cancel_redirect');
+    const data = await response.json();
+    window.location.href = data.redirect_url;
+  } catch (error) {
+    // Fallback to home page if API call fails
+    console.warn('Failed to get redirect URL, falling back to home:', error);
+    window.location.href = "/";
   }
 });
 
