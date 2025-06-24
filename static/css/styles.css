@@ -240,10 +240,6 @@ h2 {
   box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
 }
 
-.form-control-lg {
-  padding: 1rem 1.25rem;
-  font-size: 1.125rem;
-}
 
 .form-label {
   font-weight: 600;
