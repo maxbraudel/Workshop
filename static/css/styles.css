@@ -1,0 +1,558 @@
+/* 
+ * Cinemacousas - Global Stylesheet
+ * This file contains all unified styles for the movie website
+ */
+
+/* ================================
+   CSS CUSTOM PROPERTIES (VARIABLES)
+   ================================ */
+:root {
+  /* Colors */
+  --primary-color: #0d6efd;
+  --primary-hover: #0b5ed7;
+  --secondary-color: #6c757d;
+  --success-color: #198754;
+  --danger-color: #dc3545;
+  --warning-color: #ffc107;
+  --info-color: #0dcaf0;
+  --light-color: #f8f9fa;
+  --dark-color: #212529;
+  --white: #ffffff;
+  
+  /* Text Colors */
+  --text-primary: #333333;
+  --text-secondary: #6c757d;
+  --text-muted: #6c757d;
+  
+  /* Backgrounds */
+  --bg-light: #f8f9fa;
+  --bg-white: #ffffff;
+  --bg-dark: #212529;
+  
+  /* Shadows */
+  --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  --shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+  --navbar-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  
+  /* Spacing */
+  --navbar-height: 4rem;
+  --border-radius: 0.375rem;
+  --border-radius-lg: 0.5rem;
+  
+  /* Transitions */
+  --transition: all 0.3s ease;
+  --transition-fast: all 0.15s ease;
+}
+
+/* ================================
+   GLOBAL STYLES
+   ================================ */
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+  color: var(--text-primary);
+  background-color: var(--bg-white);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* ================================
+   NAVIGATION STYLES
+   ================================ */
+.navbar {
+  box-shadow: var(--navbar-shadow);
+  height: var(--navbar-height);
+  width: 100vw;
+  background-color: var(--bg-white) !important;
+  transition: var(--transition);
+}
+
+.navbar-brand {
+  font-weight: bold;
+  color: var(--primary-color) !important;
+  transition: var(--transition-fast);
+}
+
+.navbar-brand:hover {
+  color: var(--primary-hover) !important;
+  transform: scale(1.05);
+}
+
+.navbar-brand i {
+  font-size: 1.5rem;
+}
+
+.navbar-nav {
+  flex-direction: row;
+  gap: 1rem;
+}
+
+.nav-center {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.nav-link {
+  color: var(--text-primary) !important;
+  font-weight: 500;
+  padding: 0.5rem 1rem !important;
+  border-radius: var(--border-radius);
+  transition: var(--transition-fast);
+}
+
+.nav-link:hover {
+  color: var(--primary-color) !important;
+  background-color: rgba(13, 110, 253, 0.1);
+}
+
+/* User dropdown styles */
+.dropdown-menu {
+  border: none;
+  box-shadow: var(--shadow);
+  border-radius: var(--border-radius-lg);
+  min-width: 200px;
+}
+
+.dropdown-header {
+  font-weight: bold;
+  color: var(--primary-color);
+}
+
+.dropdown-item {
+  padding: 0.75rem 1rem;
+  transition: var(--transition-fast);
+}
+
+.dropdown-item:hover {
+  background-color: var(--bg-light);
+  color: var(--primary-color);
+}
+
+/* Profile image styles */
+.profile-img {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border: 2px solid var(--bg-light);
+  transition: var(--transition-fast);
+}
+
+/* Profile button container */
+#userDropdown {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  transition: var(--transition-fast);
+}
+
+#userDropdown:hover {
+  background-color: var(--bg-light) !important;
+}
+
+/* ================================
+   HERO SECTION STYLES
+   ================================ */
+.hero {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  height: calc(100vh - var(--navbar-height));
+  background: linear-gradient(135deg, var(--bg-light) 0%, var(--white) 100%);
+  position: relative;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="25" cy="25" r="2" fill="%23f0f0f0" opacity="0.3"/><circle cx="75" cy="75" r="2" fill="%23f0f0f0" opacity="0.3"/></svg>');
+  pointer-events: none;
+}
+
+.hero h1 {
+  font-size: 3.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  animation: fadeInUp 1s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ================================
+   FORM STYLES
+   ================================ */
+.log-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: calc(80vh);
+  gap: 2rem;
+  padding: 2rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 90vw;
+  max-width: 300px;
+}
+
+/* Enhanced form controls */
+.form-control {
+  border: 2px solid #e9ecef;
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.form-control:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+.form-control-lg {
+  padding: 1rem 1.25rem;
+  font-size: 1.125rem;
+}
+
+.form-label {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+/* ================================
+   CARD STYLES
+   ================================ */
+.card {
+  border: none;
+  border-radius: 1rem;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  overflow: hidden;
+}
+
+.card-body {
+  padding: 1.5rem;
+}
+
+/* Login page specific card styling */
+.login-card {
+  box-shadow: var(--shadow-lg);
+}
+
+.login-card .card-body {
+  padding: 2rem;
+}
+
+.card-title {
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+/* Movie card specific styles */
+.movie-card {
+  height: 100%;
+  border: none;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+}
+
+
+/* ================================
+   BUTTON STYLES
+   ================================ */
+.btn {
+  border-radius: 0.75rem;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+  color: var(--white);
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, var(--primary-hover) 0%, #0a58ca 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+}
+
+.btn-secondary {
+  background-color: var(--secondary-color);
+  color: var(--white);
+}
+
+.btn-outline-secondary:hover {
+  transform: translateY(-1px);
+}
+
+.btn-success {
+  background-color: var(--success-color);
+  color: var(--white);
+}
+
+.btn-danger {
+  background-color: var(--danger-color);
+  color: var(--white);
+}
+
+.btn-lg {
+  padding: 1rem 2rem;
+  font-size: 1.125rem;
+}
+
+/* ================================
+   BADGE STYLES
+   ================================ */
+.badge {
+  border-radius: var(--border-radius);
+  font-weight: 500;
+  font-size: 0.75rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.badge.bg-secondary {
+  background-color: var(--secondary-color) !important;
+}
+
+/* ================================
+   ALERT STYLES
+   ================================ */
+.alert {
+  border: none;
+  border-radius: var(--border-radius);
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.alert-success {
+  background-color: rgba(25, 135, 84, 0.1);
+  color: var(--success-color);
+  border-left: 4px solid var(--success-color);
+}
+
+.alert-danger {
+  background-color: rgba(220, 53, 69, 0.1);
+  color: var(--danger-color);
+  border-left: 4px solid var(--danger-color);
+}
+
+.alert-info {
+  background-color: rgba(13, 202, 240, 0.1);
+  color: var(--info-color);
+  border-left: 4px solid var(--info-color);
+}
+
+/* ================================
+   UTILITY CLASSES
+   ================================ */
+.text-primary {
+  color: #2c3e50 !important;
+}
+
+.text-secondary {
+  color: var(--text-secondary) !important;
+}
+
+.text-muted {
+  color: var(--text-muted) !important;
+}
+
+.bg-light {
+  background-color: var(--bg-light) !important;
+}
+
+.shadow-sm {
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.shadow {
+  box-shadow: var(--shadow) !important;
+}
+
+.shadow-lg {
+  box-shadow: var(--shadow-lg) !important;
+}
+
+/* ================================
+   ICON STYLES
+   ================================ */
+.fa-user-circle {
+  color: var(--secondary-color);
+}
+
+/* Login form specific icons */
+.login-icon {
+  color: var(--secondary-color);
+  transition: var(--transition-fast);
+}
+
+.login-icon:hover {
+  color: var(--primary-color);
+}
+
+/* ================================
+   RESPONSIVE DESIGN
+   ================================ */
+@media (max-width: 768px) {
+  .hero h1 {
+    font-size: 2.5rem;
+  }
+  
+  .navbar-nav {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .nav-center {
+    position: static;
+    transform: none;
+  }
+  
+  .container {
+    padding: 1rem;
+  }
+  
+  .card-body {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .hero h1 {
+    font-size: 2rem;
+  }
+  
+  .btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
+  
+  .form-control {
+    padding: 0.5rem 0.75rem;
+  }
+  
+  /* Login form responsive adjustments */
+  .login-card .card-body {
+    padding: 2rem 1.5rem !important;
+  }
+}
+
+/* ================================
+   ANIMATIONS AND EFFECTS
+   ================================ */
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.6s ease-out;
+}
+
+.animate-slide-in-left {
+  animation: slideInLeft 0.6s ease-out;
+}
+
+/* ================================
+   LOADING STATES
+   ================================ */
+.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--bg-light);
+  border-top: 4px solid var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* ================================
+   FOCUS ACCESSIBILITY
+   ================================ */
+*:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+.btn:focus,
+.form-control:focus,
+.nav-link:focus {
+  outline: none;
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+/* ================================
+   PRINT STYLES
+   ================================ */
+@media print {
+  .navbar,
+  .dropdown,
+  .btn,
+  .alert {
+    display: none !important;
+  }
+  
+  body {
+    color: black !important;
+    background: white !important;
+  }
+  
+  .card {
+    border: 1px solid #ddd !important;
+    box-shadow: none !important;
+  }
+}

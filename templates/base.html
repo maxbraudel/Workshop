@@ -9,67 +9,7 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
   <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
   <link rel="stylesheet" href="{{url_for('static', filename='css/reset.css')}}">
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-    }
-
-    .navbar {
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      height: 4rem;
-      width: 100vw;
-    }
-    .navbar-nav {
-      flex-direction: row;
-      gap: 1rem;
-    }
-    .navbar-brand i {
-      font-size: 1.5rem;
-    }
-    .nav-center {
-      position: absolute;
-      left: 50%;
-      transform: translateX(-50%);
-    }
-
-    .hero {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        height: 100%;
-    }
-
-    .hero {
-        height: calc(100vh - 4rem);
-    }
-
-    h1 {
-        font-size: 3rem;
-        color: #333;
-        margin: 0;
-    }
-
-    .log-form {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        height: 100%;
-        height: calc(80vh);
-        gap: 2rem;
-        
-    }
-
-    .form-group {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-        width: 90vw;
-        max-width: 300px;
-    }
-  </style>
+  <link rel="stylesheet" href="{{url_for('static', filename='css/styles.css')}}">
 </head>
 <body>
 

@@ -6,13 +6,13 @@
 {% block content %}
 <div class="container mt-5">
   <div class="row justify-content-center">
-    <div class="col-md-6 col-lg-4">
+    <div class="col-90 w-max-400">
       <!-- Login Card -->
-      <div class="card shadow-lg border-0">
+      <div class="card login-card shadow-lg border-0">
         <div class="card-body p-4">
           <!-- Header with Icon -->
           <div class="text-center mb-4">
-            <i class="fas fa-user-circle fa-3x text-primary mb-3"></i>
+            <i class="fas fa-user-circle fa-3x login-icon mb-3"></i>
             <h2 class="card-title fw-bold text-primary">Welcome Back</h2>
             <p class="text-muted">Sign in to your account</p>
           </div>
@@ -81,70 +81,6 @@
     </div>
   </div>
 </div>
-
-<!-- Custom Styles -->
-<style>
-.card {
-  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-  border-radius: 1rem;
-}
-
-.card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 15px 35px rgba(0,0,0,0.15) !important;
-}
-
-.form-control {
-  border-radius: 0.75rem;
-  border: 2px solid #e9ecef;
-  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-}
-
-.form-control:focus {
-  border-color: #0d6efd;
-  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
-}
-
-.btn {
-  border-radius: 0.75rem;
-  font-weight: 600;
-  transition: all 0.2s ease-in-out;
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
-  border: none;
-}
-
-.btn-primary:hover {
-  background: linear-gradient(135deg, #0b5ed7 0%, #0a58ca 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
-}
-
-.btn-outline-secondary:hover {
-  transform: translateY(-1px);
-}
-
-.text-primary {
-  color: #2c3e50 !important;
-}
-
-.fa-user-circle {
-  color: #6c757d;
-}
-
-/* Responsive adjustments */
-@media (max-width: 576px) {
-  .container {
-    padding: 1rem;
-  }
-  
-  .card-body {
-    padding: 2rem 1.5rem !important;
-  }
-}
-</style>
 
 <script>
 // Much smoother approach using browser history
