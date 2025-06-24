@@ -174,20 +174,27 @@ function showStep(stepNumber) {
 
 // Next step button
 document.getElementById('nextStep').addEventListener('click', function() {
-  // Validate step 1 fields
+  const button = this;
+  const originalText = button.innerHTML;
+  
+  // Get form data
   const firstName = document.getElementById('firstName');
   const lastName = document.getElementById('lastName');
   const email = document.getElementById('email');
   const username = document.getElementById('username');
-  
-  let isValid = true;
   
   // Reset validation states
   [firstName, lastName, email, username].forEach(field => {
     field.classList.remove('is-invalid');
   });
   
-  // Validate each field
+  // Clear any existing alerts
+  const existingAlerts = document.querySelectorAll('.alert');
+  existingAlerts.forEach(alert => alert.remove());
+  
+  // Basic client-side validation first
+  let isValid = true;
+  
   if (!firstName.value.trim() || firstName.value.trim().length < 2) {
     firstName.classList.add('is-invalid');
     firstName.focus();
@@ -210,13 +217,87 @@ document.getElementById('nextStep').addEventListener('click', function() {
     isValid = false;
   }
   
-  if (isValid) {
-    showStep(2);
-    // Focus on password field
-    setTimeout(() => {
-      document.getElementById('password').focus();
-    }, 100);
+  if (!isValid) {
+    return;
   }
+  
+  // Show loading state
+  button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Validating...';
+  button.disabled = true;
+  
+  // Prepare form data for AJAX request
+  const formData = new FormData();
+  formData.append('firstName', firstName.value.trim());
+  formData.append('lastName', lastName.value.trim());
+  formData.append('email', email.value.trim().toLowerCase());
+  formData.append('username', username.value.trim());
+  
+  // Send AJAX request to validate identifiers
+  fetch('/validate_identifiers', {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => response.json())
+  .then(data => {
+    // Restore button state
+    button.innerHTML = originalText;
+    button.disabled = false;
+    
+    if (data.success) {
+      // Validation passed, proceed to step 2
+      showStep(2);
+      // Focus on password field
+      setTimeout(() => {
+        document.getElementById('password').focus();
+      }, 100);
+    } else {
+      // Validation failed, show errors
+      const flashContainer = document.querySelector('.card-body');
+      const formElement = document.getElementById('signupForm');
+      
+      data.errors.forEach(error => {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+        alertDiv.setAttribute('role', 'alert');
+        alertDiv.innerHTML = `
+          <i class="fas fa-exclamation-circle me-2"></i>
+          ${error}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+        flashContainer.insertBefore(alertDiv, formElement);
+      });
+      
+      // Focus on the first invalid field
+      if (data.errors.some(error => error.includes('email'))) {
+        email.classList.add('is-invalid');
+        email.focus();
+      } else if (data.errors.some(error => error.includes('username'))) {
+        username.classList.add('is-invalid');
+        username.focus();
+      }
+    }
+  })
+  .catch(error => {
+    // Restore button state
+    button.innerHTML = originalText;
+    button.disabled = false;
+    
+    console.error('Error:', error);
+    
+    // Show generic error message
+    const flashContainer = document.querySelector('.card-body');
+    const formElement = document.getElementById('signupForm');
+    
+    const alertDiv = document.createElement('div');
+    alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+    alertDiv.setAttribute('role', 'alert');
+    alertDiv.innerHTML = `
+      <i class="fas fa-exclamation-circle me-2"></i>
+      An error occurred while validating your information. Please try again.
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    `;
+    flashContainer.insertBefore(alertDiv, formElement);
+  });
 });
 
 // Previous step button

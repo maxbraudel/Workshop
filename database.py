@@ -301,8 +301,8 @@ def add_account(first_name, last_name, email, username, password):
         cursor.close()
         conn.close()
 
-def validate_signup_data(first_name, last_name, email, username, password, confirm_password):
-    """Validate signup form data"""
+def validate_signup_identifiers(first_name, last_name, email, username):
+    """Validate signup form identifiers (first name, last name, email, username)"""
     errors = []
     
     # Name validation
@@ -321,8 +321,37 @@ def validate_signup_data(first_name, last_name, email, username, password, confi
         errors.append("Username must be at least 3 characters long")
     
     import re
-    if not re.match("^[a-zA-Z0-9_]+$", username):
+    if username and not re.match("^[a-zA-Z0-9_]+$", username):
         errors.append("Username can only contain letters, numbers, and underscores")
+    
+    # Check database constraints if basic validation passes
+    if not errors:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        try:
+            # Check if email already exists
+            cursor.execute("SELECT id FROM account WHERE email = %s", (email,))
+            if cursor.fetchone():
+                errors.append("Email address is already registered")
+            
+            # Check if username already exists
+            cursor.execute("SELECT id FROM account WHERE username = %s", (username,))
+            if cursor.fetchone():
+                errors.append("Username is already taken")
+                
+        except Exception as e:
+            print(f"Error checking database constraints: {e}")
+            errors.append("Unable to verify email and username availability. Please try again.")
+        finally:
+            cursor.close()
+            conn.close()
+    
+    return errors
+
+def validate_signup_passwords(password, confirm_password):
+    """Validate signup form passwords"""
+    errors = []
     
     # Password validation
     if not password or len(password) < 8:
@@ -330,5 +359,19 @@ def validate_signup_data(first_name, last_name, email, username, password, confi
     
     if password != confirm_password:
         errors.append("Passwords do not match")
+    
+    return errors
+
+def validate_signup_data(first_name, last_name, email, username, password, confirm_password):
+    """Validate complete signup form data (for backward compatibility)"""
+    errors = []
+    
+    # Validate identifiers
+    identifier_errors = validate_signup_identifiers(first_name, last_name, email, username)
+    errors.extend(identifier_errors)
+    
+    # Validate passwords
+    password_errors = validate_signup_passwords(password, confirm_password)
+    errors.extend(password_errors)
     
     return errors

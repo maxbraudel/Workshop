@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from database import (
     test_database_connection,
     authenticate_user,
@@ -7,7 +7,9 @@ from database import (
     validate_session_token,
     get_all_movies,
     add_account,
-    validate_signup_data
+    validate_signup_data,
+    validate_signup_identifiers,
+    validate_signup_passwords
 )
 
 app = Flask(__name__)
@@ -143,6 +145,28 @@ def signup():
     
     # GET request - show signup form
     return render_template('signup.html')
+
+@app.route('/validate_identifiers', methods=['POST'])
+def validate_identifiers():
+    """AJAX endpoint to validate identifiers before proceeding to password step"""
+    first_name = request.form.get('firstName', '').strip()
+    last_name = request.form.get('lastName', '').strip()
+    email = request.form.get('email', '').strip().lower()
+    username = request.form.get('username', '').strip()
+    
+    # Validate the identifiers
+    validation_errors = validate_signup_identifiers(first_name, last_name, email, username)
+    
+    if validation_errors:
+        return jsonify({
+            'success': False,
+            'errors': validation_errors
+        })
+    else:
+        return jsonify({
+            'success': True,
+            'message': 'All identifiers are valid!'
+        })
 
 # Helper function to check if user is logged in
 def is_logged_in():
