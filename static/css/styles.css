@@ -178,13 +178,20 @@ body {
   pointer-events: none;
 }
 
-.hero h1 {
+h1 {
   font-size: 3.5rem;
   font-weight: 700;
   color: var(--text-primary);
   margin: 0;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   animation: fadeInUp 1s ease-out;
+}
+
+h2 {
+  font-size: 1.75rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-top: 0.5rem;
 }
 
 @keyframes fadeInUp {
@@ -300,8 +307,6 @@ body {
 
 .btn-primary:hover {
   background: linear-gradient(135deg, var(--primary-hover) 0%, #0a58ca 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
 }
 
 .btn-secondary {
@@ -422,8 +427,12 @@ body {
    RESPONSIVE DESIGN
    ================================ */
 @media (max-width: 768px) {
-  .hero h1 {
+  h1 {
     font-size: 2.5rem;
+  }
+
+  h2 {
+    font-size: 1.5rem;
   }
   
   .navbar-nav {
@@ -446,9 +455,13 @@ body {
 }
 
 @media (max-width: 576px) {
-  .hero h1 {
+  h1 {
     font-size: 2rem;
   }
+
+    h2 {
+        font-size: 1.25rem;
+    }
   
   .btn {
     padding: 0.5rem 1rem;
