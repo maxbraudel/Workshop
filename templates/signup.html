@@ -14,7 +14,6 @@
           <div class="text-center mb-4">
             <i class="fas fa-user-plus fa-3x login-icon mb-3"></i>
             <h2 class="card-title fw-bold text-primary">Create Account</h2>
-            <p class="text-muted">Join Cinemacousas today</p>
           </div>
           
           <!-- Flash messages -->
@@ -22,9 +21,9 @@
             {% if messages %}
               {% for category, message in messages %}
                 <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
-                  <i class="fas fa-{{ 'exclamation-circle' if category == 'error' else 'check-circle' }} me-2"></i>
+                  <i class="fas fa-{{ 'exclamation-circle' if category == 'error' else 'check-circle' if category == 'success' else 'info-circle' }} me-2"></i>
                   {{ message }}
-                  <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
               {% endfor %}
             {% endif %}
@@ -32,107 +31,114 @@
           
           <!-- Signup Form -->
           <form id="signupForm" method="post" action="{{ url_for('signup') }}">
-            <div class="row">
-              <div class="col-md-6 mb-3">
-                <label for="firstName" class="form-label fw-bold">
-                  <i class="fas fa-user me-2"></i>First Name
+            <!-- Step 1: Personal Information -->
+            <div class="signup-step" id="step1">
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label for="firstName" class="form-label fw-bold">
+                    <i class="fas fa-user me-2"></i>First Name
+                  </label>
+                  <input type="text" 
+                         class="form-control form-control-lg" 
+                         id="firstName" 
+                         name="firstName" 
+                         placeholder="Enter your first name"
+                         value="{{ request.form.firstName if request.form.firstName }}"
+                         required>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                  <label for="lastName" class="form-label fw-bold">
+                    <i class="fas fa-user me-2"></i>Last Name
+                  </label>
+                  <input type="text" 
+                         class="form-control form-control-lg" 
+                         id="lastName" 
+                         name="lastName" 
+                         placeholder="Enter your last name"
+                         value="{{ request.form.lastName if request.form.lastName }}"
+                         required>
+                </div>
+              </div>
+              
+              <div class="mb-3">
+                <label for="email" class="form-label fw-bold">
+                  <i class="fas fa-envelope me-2"></i>Email Address
                 </label>
-                <input type="text" 
+                <input type="email" 
                        class="form-control form-control-lg" 
-                       id="firstName" 
-                       name="firstName" 
-                       placeholder="Enter your first name"
-                       value="{{ request.form.firstName if request.form.firstName }}"
+                       id="email" 
+                       name="email" 
+                       placeholder="Enter your email address"
+                       value="{{ request.form.email if request.form.email }}"
                        required>
               </div>
               
-              <div class="col-md-6 mb-3">
-                <label for="lastName" class="form-label fw-bold">
-                  <i class="fas fa-user me-2"></i>Last Name
+              <div class="mb-4">
+                <label for="username" class="form-label fw-bold">
+                  <i class="fas fa-at me-2"></i>Username
                 </label>
                 <input type="text" 
                        class="form-control form-control-lg" 
-                       id="lastName" 
-                       name="lastName" 
-                       placeholder="Enter your last name"
-                       value="{{ request.form.lastName if request.form.lastName }}"
+                       id="username" 
+                       name="username" 
+                       placeholder="Choose a username"
+                       value="{{ request.form.username if request.form.username }}"
+                       required>
+                <div class="form-text">Username must be unique and contain only letters, numbers, and underscores.</div>
+              </div>
+              
+              <!-- Step 1 Action Button -->
+              <div class="d-grid gap-2">
+                <button type="button" class="btn btn-primary btn-lg" id="nextStep">
+                  <i class="fas fa-arrow-right me-2"></i>
+                  Set Password
+                </button>
+                <button type="button" id="cancel" class="btn btn-outline-secondary">
+                  <i class="fas fa-arrow-left me-2"></i>
+                  Cancel
+                </button>
+              </div>
+            </div>
+
+            <!-- Step 2: Password Setup -->
+            <div class="signup-step" id="step2" style="display: none;">
+              <div class="mb-3">
+                <label for="password" class="form-label fw-bold">
+                  <i class="fas fa-lock me-2"></i>Password
+                </label>
+                <input type="password" 
+                       class="form-control form-control-lg" 
+                       id="password" 
+                       name="password" 
+                       placeholder="Create a strong password"
+                       required>
+                <div class="form-text">Password must be at least 8 characters long.</div>
+              </div>
+              
+              <div class="mb-4">
+                <label for="confirmPassword" class="form-label fw-bold">
+                  <i class="fas fa-lock me-2"></i>Confirm Password
+                </label>
+                <input type="password" 
+                       class="form-control form-control-lg" 
+                       id="confirmPassword" 
+                       name="confirmPassword" 
+                       placeholder="Confirm your password"
                        required>
               </div>
-            </div>
-            
-            <div class="mb-3">
-              <label for="email" class="form-label fw-bold">
-                <i class="fas fa-envelope me-2"></i>Email Address
-              </label>
-              <input type="email" 
-                     class="form-control form-control-lg" 
-                     id="email" 
-                     name="email" 
-                     placeholder="Enter your email address"
-                     value="{{ request.form.email if request.form.email }}"
-                     required>
-            </div>
-            
-            <div class="mb-3">
-              <label for="username" class="form-label fw-bold">
-                <i class="fas fa-at me-2"></i>Username
-              </label>
-              <input type="text" 
-                     class="form-control form-control-lg" 
-                     id="username" 
-                     name="username" 
-                     placeholder="Choose a username"
-                     value="{{ request.form.username if request.form.username }}"
-                     required>
-              <div class="form-text">Username must be unique and contain only letters, numbers, and underscores.</div>
-            </div>
-            
-            <div class="mb-3">
-              <label for="password" class="form-label fw-bold">
-                <i class="fas fa-lock me-2"></i>Password
-              </label>
-              <input type="password" 
-                     class="form-control form-control-lg" 
-                     id="password" 
-                     name="password" 
-                     placeholder="Create a strong password"
-                     required>
-              <div class="form-text">Password must be at least 8 characters long.</div>
-            </div>
-            
-            <div class="mb-4">
-              <label for="confirmPassword" class="form-label fw-bold">
-                <i class="fas fa-lock me-2"></i>Confirm Password
-              </label>
-              <input type="password" 
-                     class="form-control form-control-lg" 
-                     id="confirmPassword" 
-                     name="confirmPassword" 
-                     placeholder="Confirm your password"
-                     required>
-            </div>
-            
-            <!-- Terms and Conditions -->
-            <div class="mb-4">
-              <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="termsCheck" required>
-                <label class="form-check-label" for="termsCheck">
-                  I agree to the <a href="#" class="text-primary text-decoration-none">Terms of Service</a> 
-                  and <a href="#" class="text-primary text-decoration-none">Privacy Policy</a>
-                </label>
+              
+              <!-- Step 2 Action Buttons -->
+              <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary btn-lg">
+                  <i class="fas fa-user-plus me-2"></i>
+                  Create Account
+                </button>
+                <button type="button" class="btn btn-outline-secondary" id="prevStep">
+                  <i class="fas fa-arrow-left me-2"></i>
+                  Personal Info
+                </button>
               </div>
-            </div>
-            
-            <!-- Action Buttons -->
-            <div class="d-grid gap-2">
-              <button type="submit" class="btn btn-primary btn-lg">
-                <i class="fas fa-user-plus me-2"></i>
-                Create Account
-              </button>
-              <button type="button" id="cancel" class="btn btn-outline-secondary">
-                <i class="fas fa-arrow-left me-2"></i>
-                Cancel
-              </button>
             </div>
           </form>
           
@@ -150,6 +156,74 @@
 </div>
 
 <script>
+// Multi-step form functionality
+let currentStep = 1;
+
+// Step navigation functions
+function showStep(stepNumber) {
+  // Hide all steps
+  document.querySelectorAll('.signup-step').forEach(step => {
+    step.style.display = 'none';
+  });
+  
+  // Show current step
+  document.getElementById(`step${stepNumber}`).style.display = 'block';
+  
+  currentStep = stepNumber;
+}
+
+// Next step button
+document.getElementById('nextStep').addEventListener('click', function() {
+  // Validate step 1 fields
+  const firstName = document.getElementById('firstName');
+  const lastName = document.getElementById('lastName');
+  const email = document.getElementById('email');
+  const username = document.getElementById('username');
+  
+  let isValid = true;
+  
+  // Reset validation states
+  [firstName, lastName, email, username].forEach(field => {
+    field.classList.remove('is-invalid');
+  });
+  
+  // Validate each field
+  if (!firstName.value.trim() || firstName.value.trim().length < 2) {
+    firstName.classList.add('is-invalid');
+    firstName.focus();
+    isValid = false;
+  } else if (!lastName.value.trim() || lastName.value.trim().length < 2) {
+    lastName.classList.add('is-invalid');
+    lastName.focus();
+    isValid = false;
+  } else if (!email.value.trim() || !email.value.includes('@')) {
+    email.classList.add('is-invalid');
+    email.focus();
+    isValid = false;
+  } else if (!username.value.trim() || username.value.trim().length < 3) {
+    username.classList.add('is-invalid');
+    username.focus();
+    isValid = false;
+  } else if (!/^[a-zA-Z0-9_]+$/.test(username.value.trim())) {
+    username.classList.add('is-invalid');
+    username.focus();
+    isValid = false;
+  }
+  
+  if (isValid) {
+    showStep(2);
+    // Focus on password field
+    setTimeout(() => {
+      document.getElementById('password').focus();
+    }, 100);
+  }
+});
+
+// Previous step button
+document.getElementById('prevStep').addEventListener('click', function() {
+  showStep(1);
+});
+
 // Password confirmation validation
 document.getElementById('confirmPassword').addEventListener('input', function() {
   const password = document.getElementById('password').value;
@@ -206,7 +280,11 @@ document.querySelector('#cancel').addEventListener('click', () => {
 // Escape key functionality
 document.addEventListener('keydown', (event) => {
   if (event.key === 'Escape') {
-    document.querySelector('#cancel').click();
+    if (currentStep === 2) {
+      showStep(1);
+    } else {
+      document.querySelector('#cancel').click();
+    }
   }
 });
 
@@ -236,5 +314,8 @@ document.querySelector('#signupForm').addEventListener('submit', function(e) {
     }
   }, 5000);
 });
+
+// Initialize form
+showStep(1);
 </script>
 {% endblock %}

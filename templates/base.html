@@ -19,24 +19,27 @@
         <!-- Flash messages -->
         {% with messages = get_flashed_messages(with_categories=true) %}
           {% if messages %}
-            <script>
-              document.addEventListener('DOMContentLoaded', function() {
-                {% for category, message in messages %}
-                  Toastify({
-                    text: "{{ message }}",
-                    duration: 4000,
-                    close: true,
-                    gravity: "bottom",
-                    position: "right",
-                    stopOnFocus: true,
-                    style: {
-                      background: {% if category == 'success' %}"linear-gradient(to right, #00b09b, #96c93d)"{% elif category == 'error' %}"linear-gradient(to right, #ff5f6d, #ffc371)"{% elif category == 'info' %}"linear-gradient(to right, #667eea, #764ba2)"{% else %}"linear-gradient(to right, #11998e, #38ef7d)"{% endif %}
-                    },
-                    onClick: function(){} // Callback after click
-                  }).showToast();
-                {% endfor %}
-              });
-            </script>
+            {% if request.endpoint not in ['login', 'signup'] %}
+              <!-- Toast Messages for non-login/signup pages -->
+              <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                  {% for category, message in messages %}
+                    Toastify({
+                      text: "{{ message }}",
+                      duration: 4000,
+                      close: true,
+                      gravity: "bottom",
+                      position: "right",
+                      stopOnFocus: true,
+                      style: {
+                        background: {% if category == 'success' %}"linear-gradient(to right, #00b09b, #96c93d)"{% elif category == 'error' %}"linear-gradient(to right, #ff5f6d, #ffc371)"{% elif category == 'info' %}"linear-gradient(to right, #667eea, #764ba2)"{% else %}"linear-gradient(to right, #11998e, #38ef7d)"{% endif %}
+                      },
+                      onClick: function(){} // Callback after click
+                    }).showToast();
+                  {% endfor %}
+                });
+              </script>
+            {% endif %}
           {% endif %}
         {% endwith %}
         
