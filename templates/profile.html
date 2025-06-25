@@ -61,31 +61,6 @@
             </div>
           </div>
           
-          <div class="row">
-            <div class="col-md-6 mb-3">
-              <label class="form-label fw-bold text-muted">Member Since</label>
-              <div class="form-control-plaintext bg-light px-3 py-2 rounded">
-                <i class="fas fa-calendar-alt me-2 text-primary"></i>
-                {% if user.created_at %}
-                  {{ user.created_at.strftime('%B %d, %Y') }}
-                {% else %}
-                  Account creation date not available
-                {% endif %}
-              </div>
-            </div>
-            <div class="col-md-6 mb-3">
-              <label class="form-label fw-bold text-muted">Last Modified</label>
-              <div class="form-control-plaintext bg-light px-3 py-2 rounded">
-                <i class="fas fa-edit me-2 text-primary"></i>
-                {% if user.modified_at %}
-                  {{ user.modified_at.strftime('%B %d, %Y at %I:%M %p') }}
-                {% else %}
-                  Never modified
-                {% endif %}
-              </div>
-            </div>
-          </div>
-          
           <!-- Action Buttons -->
           <div class="row mt-4">
             <div class="col-12">
@@ -139,64 +114,9 @@
             </div>
           </div>
           
-          <div class="mb-3">
-            <div class="d-flex justify-content-between align-items-center">
-              <span class="text-muted">Favorite Genre</span>
-              <span class="fw-bold text-info">Action</span>
-            </div>
-          </div>
-          
           <div class="alert alert-info mt-3" role="alert">
             <i class="fas fa-info-circle me-2"></i>
             <small>More detailed statistics will be available once you start booking tickets!</small>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  
-  <!-- Quick Actions -->
-  <div class="row">
-    <div class="col-12">
-      <div class="card shadow-sm border-0">
-        <div class="card-header bg-info text-white">
-          <h5 class="mb-0">
-            <i class="fas fa-bolt me-2"></i>
-            Quick Actions
-          </h5>
-        </div>
-        <div class="card-body">
-          <div class="row text-center">
-            <div class="col-md-3 mb-3">
-              <a href="{{ url_for('movies') }}" class="text-decoration-none">
-                <div class="p-3 bg-light rounded">
-                  <i class="fas fa-film fa-2x text-primary mb-2"></i>
-                  <h6 class="text-dark">Browse Movies</h6>
-                  <small class="text-muted">Discover new films</small>
-                </div>
-              </a>
-            </div>
-            <div class="col-md-3 mb-3">
-              <div class="p-3 bg-light rounded">
-                <i class="fas fa-ticket-alt fa-2x text-secondary mb-2"></i>
-                <h6 class="text-muted">My Tickets</h6>
-                <small class="text-muted">Coming soon</small>
-              </div>
-            </div>
-            <div class="col-md-3 mb-3">
-              <div class="p-3 bg-light rounded">
-                <i class="fas fa-heart fa-2x text-secondary mb-2"></i>
-                <h6 class="text-muted">Favorites</h6>
-                <small class="text-muted">Coming soon</small>
-              </div>
-            </div>
-            <div class="col-md-3 mb-3">
-              <div class="p-3 bg-light rounded">
-                <i class="fas fa-history fa-2x text-secondary mb-2"></i>
-                <h6 class="text-muted">Watch History</h6>
-                <small class="text-muted">Coming soon</small>
-              </div>
-            </div>
           </div>
         </div>
       </div>
