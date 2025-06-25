@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
-from database import (
+from src.database import (
     test_database_connection,
     authenticate_user,
     create_session_token,
