@@ -13,6 +13,8 @@ from src.database import (
     get_all_movies,
     get_user_by_id,
     add_account,
+    modify_account_profile,
+    modify_account_password,
     validate_signup_data,
     validate_signup_identifiers,
     validate_signup_passwords,
@@ -251,6 +253,105 @@ def profile():
     except Exception as e:
         flash('Server unavailable, please try again later.', 'error')
         print(f"Profile page error: {e}")  # Log for debugging
+        return redirect(url_for('index'))
+
+@app.route('/settings', methods=['GET', 'POST'])
+@login_required
+def settings():
+    """User settings page - requires authentication"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            flash('Session error. Please log in again.', 'error')
+            return redirect(url_for('login'))
+        
+        # Get user information from database
+        user = get_user_by_id(user_id)
+        if not user:
+            flash('User information not found.', 'error')
+            return redirect(url_for('index'))
+        
+        if request.method == 'POST':
+            # Handle form submissions
+            form_type = request.form.get('form_type')
+            
+            if form_type == 'profile':
+                # Handle profile update
+                first_name = request.form.get('first_name', '').strip()
+                last_name = request.form.get('last_name', '').strip()
+                email = request.form.get('email', '').strip().lower()
+                username = request.form.get('username', '').strip()
+                
+                # Basic validation
+                if not all([first_name, last_name, email, username]):
+                    flash('All fields are required.', 'error')
+                    return render_template('settings.html', user=user)
+                
+                # Validate email format
+                import re
+                email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+                if not re.match(email_pattern, email):
+                    flash('Please enter a valid email address.', 'error')
+                    return render_template('settings.html', user=user)
+                
+                # Validate username (alphanumeric and underscore only, 3-20 chars)
+                username_pattern = r'^[a-zA-Z0-9_]{3,20}$'
+                if not re.match(username_pattern, username):
+                    flash('Username must be 3-20 characters long and contain only letters, numbers, and underscores.', 'error')
+                    return render_template('settings.html', user=user)
+                
+                # Update profile in database
+                result = modify_account_profile(user_id, first_name, last_name, email, username)
+                
+                if result and result['success']:
+                    # Update session username if it changed
+                    if username != session.get('username'):
+                        session['username'] = username
+                    
+                    flash('Profile updated successfully!', 'success')
+                    # Redirect to refresh the page with updated data
+                    return redirect(url_for('settings'))
+                elif result:
+                    flash(result['error'], 'error')
+                else:
+                    flash('Server unavailable, please try again later.', 'error')
+                
+            elif form_type == 'password':
+                # Handle password change
+                current_password = request.form.get('current_password', '')
+                new_password = request.form.get('new_password', '')
+                confirm_password = request.form.get('confirm_password', '')
+                
+                # Basic validation
+                if not all([current_password, new_password, confirm_password]):
+                    flash('All password fields are required.', 'error')
+                    return render_template('settings.html', user=user)
+                
+                if new_password != confirm_password:
+                    flash('New passwords do not match.', 'error')
+                    return render_template('settings.html', user=user)
+                
+                # Validate new password strength
+                if len(new_password) < 8:
+                    flash('New password must be at least 8 characters long.', 'error')
+                    return render_template('settings.html', user=user)
+                
+                # Update password in database
+                result = modify_account_password(user_id, current_password, new_password)
+                
+                if result and result['success']:
+                    flash('Password updated successfully!', 'success')
+                    # Redirect to refresh the page
+                    return redirect(url_for('settings'))
+                elif result:
+                    flash(result['error'], 'error')
+                else:
+                    flash('Server unavailable, please try again later.', 'error')
+        
+        return render_template('settings.html', user=user)
+    except Exception as e:
+        flash('Server unavailable, please try again later.', 'error')
+        print(f"Settings page error: {e}")  # Log for debugging
         return redirect(url_for('index'))
 
 # Helper function to check if a URL is an authentication page

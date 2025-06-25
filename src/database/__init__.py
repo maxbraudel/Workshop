@@ -44,7 +44,9 @@ from .database_modify import (
     invalidate_session_token,
     create_user,
     cleanup_expired_sessions,
-    add_account
+    add_account,
+    modify_account_profile,
+    modify_account_password
 )
 
 __all__ = [
@@ -76,5 +78,7 @@ __all__ = [
     'invalidate_session_token',
     'create_user',
     'cleanup_expired_sessions',
-    'add_account'
+    'add_account',
+    'modify_account_profile',
+    'modify_account_password'
 ]

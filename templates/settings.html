@@ -1,0 +1,227 @@
+<!-- templates/settings.html -->
+{% extends "base.html" %}
+
+{% block title %}Settings - Cinemacousas{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-12">
+      <!-- Page Header -->
+      <div class="d-flex align-items-center mb-4">
+        <i class="fas fa-cog fa-3x text-primary me-3"></i>
+        <div>
+          <h2 class="mb-1">Account Settings</h2>
+          <p class="text-muted mb-0">Manage your account information and security</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- Profile Information Card -->
+    <div class="col-lg-8 mb-4">
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">
+            <i class="fas fa-user me-2"></i>
+            Profile Information
+          </h5>
+        </div>
+        <div class="card-body">
+          <form id="profileForm" method="POST" action="{{ url_for('settings') }}">
+            <input type="hidden" name="form_type" value="profile">
+            
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold text-muted">First Name</label>
+                <div class="profile-field">
+                  <div class="form-control-plaintext bg-light px-3 py-2 rounded display-mode" id="first_name_display">
+                    {{ user.first_name or 'Not provided' }}
+                  </div>
+                  <input type="text" class="form-control edit-mode d-none" id="first_name_input" name="first_name" 
+                         value="{{ user.first_name or '' }}" required>
+                </div>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold text-muted">Last Name</label>
+                <div class="profile-field">
+                  <div class="form-control-plaintext bg-light px-3 py-2 rounded display-mode" id="last_name_display">
+                    {{ user.last_name or 'Not provided' }}
+                  </div>
+                  <input type="text" class="form-control edit-mode d-none" id="last_name_input" name="last_name" 
+                         value="{{ user.last_name or '' }}" required>
+                </div>
+              </div>
+            </div>
+            
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold text-muted">Username</label>
+                <div class="profile-field">
+                  <div class="form-control-plaintext bg-light px-3 py-2 rounded display-mode" id="username_display">
+                    <i class="fas fa-at me-2 text-primary"></i>
+                    {{ user.username }}
+                  </div>
+                  <input type="text" class="form-control edit-mode d-none" id="username_input" name="username" 
+                         value="{{ user.username }}" required>
+                </div>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold text-muted">Email Address</label>
+                <div class="profile-field">
+                  <div class="form-control-plaintext bg-light px-3 py-2 rounded display-mode" id="email_display">
+                    <i class="fas fa-envelope me-2 text-primary"></i>
+                    {{ user.email }}
+                  </div>
+                  <input type="email" class="form-control edit-mode d-none" id="email_input" name="email" 
+                         value="{{ user.email }}" required>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="row mt-1">
+              <div class="col-12">
+                <div class="d-flex gap-2">
+                  <button class="btn btn-primary" type="button" id="editProfileBtn" onclick="toggleEditMode()">
+                    <i class="fas fa-edit me-2"></i>
+                    Edit Profile
+                  </button>
+                  <button class="btn btn-success d-none" type="button" id="saveProfileBtn" onclick="saveProfile()">
+                    <i class="fas fa-save me-2"></i>
+                    Save Changes
+                  </button>
+                  <button class="btn btn-secondary d-none" type="button" id="cancelProfileBtn" onclick="cancelEdit()">
+                    <i class="fas fa-times me-2"></i>
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Account Actions Card -->
+    <div class="col-lg-4 mb-4">
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-warning text-dark">
+          <h5 class="mb-0">
+            <i class="fas fa-shield-alt me-2"></i>
+            Security
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="mb-3">
+            <h6 class="fw-bold">Password</h6>
+            <p class="text-muted small mb-2">Last changed: Never</p>
+            <button class="btn btn-outline-warning btn-sm w-100" type="button" data-bs-toggle="collapse" data-bs-target="#changePasswordForm" aria-expanded="false" aria-controls="changePasswordForm">
+              <i class="fas fa-key me-2"></i>
+              Change Password
+            </button>
+          </div>
+          
+          <div class="alert alert-info" role="alert">
+            <i class="fas fa-info-circle me-2"></i>
+            <small>Keep your account secure by using a strong password and updating it regularly.</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Password Change Form (Full Width, Collapsed) -->
+  <div class="row">
+    <div class="col-12">
+      <div class="collapse" id="changePasswordForm">
+        <div class="card shadow-sm border-0 border-warning">
+          <div class="card-header bg-warning text-dark">
+            <h5 class="mb-0">
+              <i class="fas fa-key me-2"></i>
+              Change Password
+            </h5>
+          </div>
+          <div class="card-body">
+            <form method="POST" action="{{ url_for('settings') }}">
+              <input type="hidden" name="form_type" value="password">
+              
+              <div class="row">
+                <div class="col-md-4 mb-3">
+                  <label for="current_password" class="form-label fw-bold">Current Password</label>
+                  <input type="password" class="form-control" id="current_password" name="current_password" 
+                         placeholder="Enter your current password" required>
+                </div>
+                <div class="col-md-4 mb-3">
+                  <label for="new_password" class="form-label fw-bold">New Password</label>
+                  <input type="password" class="form-control" id="new_password" name="new_password" 
+                         placeholder="Enter new password" required>
+                </div>
+                <div class="col-md-4 mb-3">
+                  <label for="confirm_password" class="form-label fw-bold">Confirm New Password</label>
+                  <input type="password" class="form-control" id="confirm_password" name="confirm_password" 
+                         placeholder="Confirm new password" required>
+                </div>
+              </div>
+              
+              <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-warning">
+                  <i class="fas fa-save me-2"></i>
+                  Update Password
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-toggle="collapse" data-bs-target="#changePasswordForm">
+                  <i class="fas fa-times me-2"></i>
+                  Cancel
+                </button>
+              </div>
+              
+              <div class="mt-3">
+                <small class="text-muted">
+                  <i class="fas fa-info-circle me-1"></i>
+                  Password should be at least 8 characters long and contain a mix of letters, numbers, and special characters.
+                </small>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function toggleEditMode() {
+  // Hide display elements and show input elements
+  document.querySelectorAll('.display-mode').forEach(el => el.classList.add('d-none'));
+  document.querySelectorAll('.edit-mode').forEach(el => el.classList.remove('d-none'));
+  
+  // Toggle buttons
+  document.getElementById('editProfileBtn').classList.add('d-none');
+  document.getElementById('saveProfileBtn').classList.remove('d-none');
+  document.getElementById('cancelProfileBtn').classList.remove('d-none');
+}
+
+function cancelEdit() {
+  // Show display elements and hide input elements
+  document.querySelectorAll('.display-mode').forEach(el => el.classList.remove('d-none'));
+  document.querySelectorAll('.edit-mode').forEach(el => el.classList.add('d-none'));
+  
+  // Reset input values to original
+  document.getElementById('first_name_input').value = '{{ user.first_name or "" }}';
+  document.getElementById('last_name_input').value = '{{ user.last_name or "" }}';
+  document.getElementById('username_input').value = '{{ user.username }}';
+  document.getElementById('email_input').value = '{{ user.email }}';
+  
+  // Toggle buttons
+  document.getElementById('editProfileBtn').classList.remove('d-none');
+  document.getElementById('saveProfileBtn').classList.add('d-none');
+  document.getElementById('cancelProfileBtn').classList.add('d-none');
+}
+
+function saveProfile() {
+  // Submit the form
+  document.getElementById('profileForm').submit();
+}
+</script>
+{% endblock %}
