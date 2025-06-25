@@ -1,3 +1,45 @@
-.venv
-old
-__pycache__
+# Virtual Environment
+.venv/
+venv/
+env/
+
+# Python Cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Environment Variables
+.env
+.env.local
+.env.production
+
+# Old Files
+old/
+
+# IDE Files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/
+
+# Database
+*.db
+*.sqlite3
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Flask Instance
+instance/
+
+# Coverage Reports
+htmlcov/
+.coverage
+.coverage.*

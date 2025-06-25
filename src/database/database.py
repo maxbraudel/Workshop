@@ -1,5 +1,11 @@
 import mysql.connector
 import logging
+from contextlib import contextmanager
+from mysql.connector import pooling
+from ..config import get_config
+
+# Get configuration
+config = get_config()
 
 # Configure logging for database errors
 logging.basicConfig(level=logging.ERROR)
@@ -20,30 +26,55 @@ def handle_db_errors(default_return=None):
         return wrapper
     return decorator
 
-# Database connection configuration
-DB_CONFIG = {
-    "host": "82.66.24.184",
-    "port": 3305,
-    "user": "cinemacousas",
-    "password": "password",
-    "database": "Cinemacousas"
-}
+# Database connection configuration from config class
+DB_CONFIG = config.get_database_config()
+POOL_CONFIG = config.get_pool_config()
 
+# Create connection pool
+try:
+    connection_pool = pooling.MySQLConnectionPool(
+        **DB_CONFIG,
+        **POOL_CONFIG
+    )
+    logger.info("Database connection pool created successfully")
+except mysql.connector.Error as e:
+    logger.error(f"Error creating connection pool: {e}")
+    connection_pool = None
+
+@contextmanager
 def get_db_connection():
-    """Create a new database connection"""
-    return mysql.connector.connect(**DB_CONFIG)
+    """Get a database connection from the pool with context manager"""
+    if connection_pool is None:
+        # Fallback to direct connection if pool failed
+        conn = mysql.connector.connect(**DB_CONFIG)
+    else:
+        conn = connection_pool.get_connection()
+    
+    try:
+        yield conn
+    except Exception as e:
+        conn.rollback()
+        logger.error(f"Database transaction error: {e}")
+        raise
+    finally:
+        conn.close()
+
+def get_db_connection_direct():
+    """Get a database connection directly (for backward compatibility)"""
+    if connection_pool is None:
+        return mysql.connector.connect(**DB_CONFIG)
+    return connection_pool.get_connection()
 
 def test_database_connection():
     """Test database connection and return account count"""
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("SELECT COUNT(*) FROM account")
-        count = cursor.fetchone()[0]
-        print(f"✓ Database connected successfully. Found {count} accounts.")
-        cursor.close()
-        conn.close()
-        return True
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT COUNT(*) FROM account")
+            count = cursor.fetchone()[0]
+            print(f"✓ Database connected successfully. Found {count} accounts.")
+            cursor.close()
+            return True
     except Exception as e:
         print(f"❌ Database connection error: {e}")
         return False
@@ -51,25 +82,24 @@ def test_database_connection():
 @handle_db_errors(default_return=([], []))
 def analyze_movie_table():
     """Analyze the movie table structure and sample data"""
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-    
-    try:
-        # Get table structure
-        cursor.execute("DESCRIBE movie")
-        columns = cursor.fetchall()
-        print("Movie table structure:")
-        for col in columns:
-            print(f"  {col['Field']}: {col['Type']} (Null: {col['Null']}, Key: {col['Key']})")
+    with get_db_connection() as conn:
+        cursor = conn.cursor(dictionary=True)
         
-        # Get sample data
-        cursor.execute("SELECT * FROM movie LIMIT 3")
-        sample_movies = cursor.fetchall()
-        print("\nSample movie data:")
-        for movie in sample_movies:
-            print(f"  Movie: {movie}")
+        try:
+            # Get table structure
+            cursor.execute("DESCRIBE movie")
+            columns = cursor.fetchall()
+            print("Movie table structure:")
+            for col in columns:
+                print(f"  {col['Field']}: {col['Type']} (Null: {col['Null']}, Key: {col['Key']})")
             
-        return columns, sample_movies
-    finally:
-        cursor.close()
-        conn.close()
+            # Get sample data
+            cursor.execute("SELECT * FROM movie LIMIT 3")
+            sample_movies = cursor.fetchall()
+            print("\nSample movie data:")
+            for movie in sample_movies:
+                print(f"  Movie: {movie}")
+                
+            return columns, sample_movies
+        finally:
+            cursor.close()

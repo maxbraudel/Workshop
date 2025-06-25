@@ -1,4 +1,9 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
+from src.config import get_config
+from src.session_manager import init_session_manager
+from src.middleware import init_middleware, login_required, logout_required
+from src.error_handlers import init_error_handlers
+from src.logging_config import init_logging
 from src.database import (
     test_database_connection,
     authenticate_user,
@@ -13,8 +18,18 @@ from src.database import (
     validate_login_data
 )
 
+# Get configuration
+config = get_config()
+
 app = Flask(__name__)
-app.secret_key = 'your-secret-key-change-this-in-production'  # Required for sessions
+app.secret_key = config.SECRET_KEY
+app.config['DEBUG'] = config.DEBUG
+
+# Initialize components
+init_logging(app)
+init_middleware(app)
+init_session_manager(app)
+init_error_handlers(app)
 
 # Test database connection
 test_database_connection()
@@ -44,6 +59,7 @@ def movies():
     return render_template('movies.html', movies=movies_list, storeUrl=True)
 
 @app.route('/login', methods=['GET', 'POST'])
+@logout_required
 def login():
     if request.method == 'POST':
         email = request.form['email']
@@ -91,6 +107,7 @@ def login():
     return render_template('login.html')
 
 @app.route('/logout')
+@login_required
 def logout():
     # Store the referrer URL before clearing the session (only if it's not an auth page)
     redirect_url = request.referrer if request.referrer and not is_auth_page(request.referrer) else None
@@ -110,6 +127,7 @@ def logout():
         return redirect(url_for('index'))
 
 @app.route('/signup', methods=['GET', 'POST'])
+@logout_required
 def signup():
     if request.method == 'POST':
         # Get form data
@@ -226,18 +244,6 @@ def is_auth_page(url):
     # Check if it's a login or signup page
     return path.endswith('/login') or path.endswith('/signup') or '/login' in path or '/signup' in path
 
-# Helper function to check if user is logged in
-def is_logged_in():
-    return 'logged_in' in session and session['logged_in']
-
-# Make is_logged_in available in all templates
-@app.context_processor
-def inject_user():
-    return dict(
-        is_logged_in=is_logged_in(),
-        current_user=session.get('username', None)
-    )
-
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5500)
+    app.run(debug=config.DEBUG, host='0.0.0.0', port=5500)
 

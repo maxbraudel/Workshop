@@ -1,5 +1,5 @@
 <!-- templates/navbar.html -->
-<nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom border-grey-200 px-3">
+<nav class="navbar navbar-expand-lg navbar-light custom-navbar-gradient border-bottom border-grey-200 px-3">
   <a class="navbar-brand" href="#">
     <i class="fas fa-video-camera"></i>
   </a>
@@ -36,10 +36,10 @@
           <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt me-2"></i>Log Out</a></li>
         </ul>
       </div>
-    {% else %} 
+    {% else %}
       <!-- User is not logged in -->
-      <a class="nav-link"  href="{{ url_for('signup') }}">Sign Up</a>
-      <a class="nav-link"  href="{{ url_for('login') }}">Log In</a>
+      <a class="nav-link" href="{{ url_for('signup') }}">Sign Up</a>
+      <a class="nav-link" href="{{ url_for('login') }}">Log In</a>
       <button class="btn btn-primary">My Tickets</button>
     {% endif %}
   </div>

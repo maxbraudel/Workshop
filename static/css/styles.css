@@ -69,6 +69,11 @@ body {
   transition: var(--transition);
 }
 
+.custom-navbar-gradient {
+  background: linear-gradient(to bottom, rgba(158, 158, 158, 0), #f9f9f9); /* transparent to grey */
+}
+
+
 .navbar-brand {
   font-weight: bold;
   color: var(--primary-color) !important;
@@ -157,19 +162,7 @@ body {
   justify-content: center;
   text-align: center;
   height: calc(100vh - 2 * var(--navbar-height));
-  background: linear-gradient(135deg, var(--bg-light) 0%, var(--white) 100%);
   position: relative;
-}
-
-.hero::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="25" cy="25" r="2" fill="%23f0f0f0" opacity="0.3"/><circle cx="75" cy="75" r="2" fill="%23f0f0f0" opacity="0.3"/></svg>');
-  pointer-events: none;
 }
 
 h1 {

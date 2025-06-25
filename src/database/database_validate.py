@@ -4,6 +4,12 @@ from werkzeug.security import check_password_hash
 from .database import get_db_connection, logger
 from .database_retrieve import get_user_by_email
 
+import mysql.connector
+import re
+from werkzeug.security import check_password_hash
+from .database import get_db_connection, logger
+from .database_retrieve import get_user_by_email
+
 def validate_signup_identifiers(first_name, last_name, email, username):
     """Validate signup form identifiers (first name, last name, email, username)"""
     errors = []
@@ -29,30 +35,27 @@ def validate_signup_identifiers(first_name, last_name, email, username):
     # Check database constraints if basic validation passes
     if not errors:
         try:
-            conn = get_db_connection()
-            cursor = conn.cursor()
-            
-            # Check if email already exists
-            cursor.execute("SELECT id FROM account WHERE email = %s", (email,))
-            if cursor.fetchone():
-                errors.append("Email address is already registered")
-            
-            # Check if username already exists
-            cursor.execute("SELECT id FROM account WHERE username = %s", (username,))
-            if cursor.fetchone():
-                errors.append("Username is already taken")
+            with get_db_connection() as conn:
+                cursor = conn.cursor()
                 
+                # Check if email already exists
+                cursor.execute("SELECT id FROM account WHERE email = %s", (email,))
+                if cursor.fetchone():
+                    errors.append("Email address is already registered")
+                
+                # Check if username already exists
+                cursor.execute("SELECT id FROM account WHERE username = %s", (username,))
+                if cursor.fetchone():
+                    errors.append("Username is already taken")
+                
+                cursor.close()
+                    
         except mysql.connector.Error as e:
             logger.error(f"Database error in validate_signup_identifiers: {e}")
             errors.append("Server unavailable, please try again later")
         except Exception as e:
             logger.error(f"Unexpected error in validate_signup_identifiers: {e}")
             errors.append("Server unavailable, please try again later")
-        finally:
-            if 'cursor' in locals():
-                cursor.close()
-            if 'conn' in locals():
-                conn.close()
     
     return errors
 
@@ -97,24 +100,24 @@ def validate_login_data(email, password):
     
     # Try to get user from database
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
-        
-        # Check if email exists in database
-        cursor.execute("SELECT id, email, username, password_hash FROM account WHERE email = %s", (email,))
-        user = cursor.fetchone()
-        
-        if not user:
-            # Email not found in database
-            return {"success": False, "error": "No account found with this email address", "user": None}
-        
-        # Email exists, check password
-        if check_password_hash(user['password_hash'], password):
-            # Password is correct
-            return {"success": True, "error": None, "user": user}
-        else:
-            # Password is incorrect
-            return {"success": False, "error": "Incorrect password", "user": None}
+        with get_db_connection() as conn:
+            cursor = conn.cursor(dictionary=True)
+            
+            # Check if email exists in database
+            cursor.execute("SELECT id, email, username, password_hash FROM account WHERE email = %s", (email,))
+            user = cursor.fetchone()
+            
+            if not user:
+                # Email not found in database
+                return {"success": False, "error": "No account found with this email address", "user": None}
+            
+            # Email exists, check password
+            if check_password_hash(user['password_hash'], password):
+                # Password is correct
+                return {"success": True, "error": None, "user": user}
+            else:
+                # Password is incorrect
+                return {"success": False, "error": "Incorrect password", "user": None}
             
     except mysql.connector.Error as e:
         # Database connection or query error
@@ -127,8 +130,6 @@ def validate_login_data(email, password):
     finally:
         if 'cursor' in locals():
             cursor.close()
-        if 'conn' in locals():
-            conn.close()
 
 def authenticate_user(email, password):
     """Authenticate a user with email and password"""

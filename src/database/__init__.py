@@ -11,6 +11,7 @@ This package provides database connectivity and operations split into modules:
 # Import core database functionality
 from .database import (
     get_db_connection,
+    get_db_connection_direct,
     test_database_connection,
     handle_db_errors,
     analyze_movie_table,
