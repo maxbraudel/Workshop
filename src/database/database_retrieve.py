@@ -7,7 +7,7 @@ def get_user_by_id(user_id):
         cursor = conn.cursor(dictionary=True)
         
         try:
-            cursor.execute("SELECT id, email, username, first_name, last_name, created_at, modified_at FROM account WHERE id = %s", (user_id,))
+            cursor.execute("SELECT id, email, username, first_name, last_name, created_at, password_modified_at, profile_modified_at FROM account WHERE id = %s", (user_id,))
             user = cursor.fetchone()
             return user
         finally:

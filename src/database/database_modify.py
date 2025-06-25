@@ -166,7 +166,7 @@ def modify_account_profile(user_id, first_name, last_name, email, username):
             # Update account information
             cursor.execute("""
                 UPDATE account 
-                SET first_name = %s, last_name = %s, email = %s, username = %s, modified_at = NOW()
+                SET first_name = %s, last_name = %s, email = %s, username = %s, profile_modified_at = NOW()
                 WHERE id = %s
             """, (first_name, last_name, email, username, user_id))
             
@@ -236,7 +236,7 @@ def modify_account_password(user_id, current_password, new_password):
             # Update password
             cursor.execute("""
                 UPDATE account 
-                SET password_hash = %s, modified_at = NOW()
+                SET password_hash = %s, password_modified_at = NOW()
                 WHERE id = %s
             """, (new_password_hash, user_id))
             

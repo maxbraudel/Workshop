@@ -19,8 +19,31 @@
         <!-- Flash messages -->
         {% with messages = get_flashed_messages(with_categories=true) %}
           {% if messages %}
-            {% if request.endpoint not in ['login', 'signup'] %}
-              <!-- Toast Messages for non-login/signup pages -->
+            {% if request.endpoint in ['login', 'signup'] %}
+              <!-- For login/signup pages: Only show non-form messages as toasts -->
+              {% set form_categories = ['error', 'form_error'] %}
+              <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                  {% for category, message in messages %}
+                    {% if category not in form_categories %}
+                      Toastify({
+                        text: "{{ message }}",
+                        duration: 4000,
+                        close: true,
+                        gravity: "bottom",
+                        position: "right",
+                        stopOnFocus: true,
+                        style: {
+                          background: {% if category == 'success' %}"linear-gradient(to right, #00b09b, #96c93d)"{% elif category == 'info' %}"linear-gradient(to right, #667eea, #764ba2)"{% else %}"linear-gradient(to right, #11998e, #38ef7d)"{% endif %}
+                        },
+                        onClick: function(){} // Callback after click
+                      }).showToast();
+                    {% endif %}
+                  {% endfor %}
+                });
+              </script>
+            {% else %}
+              <!-- Toast Messages for all other pages -->
               <script>
                 document.addEventListener('DOMContentLoaded', function() {
                   {% for category, message in messages %}
@@ -32,7 +55,7 @@
                       position: "right",
                       stopOnFocus: true,
                       style: {
-                        background: {% if category == 'success' %}"linear-gradient(to right, #00b09b, #96c93d)"{% elif category == 'error' %}"linear-gradient(to right, #ff5f6d, #ffc371)"{% elif category == 'info' %}"linear-gradient(to right, #667eea, #764ba2)"{% else %}"linear-gradient(to right, #11998e, #38ef7d)"{% endif %}
+                        background: {% if category == 'success' %}"linear-gradient(to right, #00b09b, #96c93d)"{% elif category == 'error' or category == 'form_error' %}"linear-gradient(to right, #ff5f6d, #ffc371)"{% elif category == 'info' %}"linear-gradient(to right, #667eea, #764ba2)"{% else %}"linear-gradient(to right, #11998e, #38ef7d)"{% endif %}
                       },
                       onClick: function(){} // Callback after click
                     }).showToast();
