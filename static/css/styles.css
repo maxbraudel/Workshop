@@ -73,6 +73,9 @@ body {
   background: linear-gradient(to bottom, rgba(158, 158, 158, 0), #f9f9f9); /* transparent to grey */
 }
 
+.custom-footer-gradient {
+  background: linear-gradient(to top, rgba(158, 158, 158, 0), #f9f9f9); /* transparent to grey */
+}
 
 .navbar-brand {
   font-weight: bold;
