@@ -92,10 +92,12 @@
           {% endfor %}
         </div>
       {% else %}
-        <div class="alert alert-info text-center">
-          <i class="fas fa-film fa-2x mb-3"></i>
-          <h4>No Movies Available</h4>
-          <p class="mb-0">Check back later for new movie releases!</p>
+        <div class="centered-alert">
+          <div class="alert alert-info text-center">
+            <i class="fas fa-film fa-2x mb-3"></i>
+            <h4>No Movies Available</h4>
+            <p class="mb-0">Check back later for new movie releases!</p>
+          </div>
         </div>
       {% endif %}
     </div>
@@ -318,7 +320,14 @@ document.addEventListener('DOMContentLoaded', function() {
         // Show loading state
         const moviesContainer = document.getElementById('moviesContainer');
         if (moviesContainer) {
-            moviesContainer.innerHTML = '<div class="col-12 text-center"><div class="spinner"></div><p>Loading movies...</p></div>';
+            moviesContainer.innerHTML = `
+                <div class="col-12">
+                    <div class="loading-container">
+                        <div class="spinner"></div>
+                        <p class="mt-3 text-muted">Loading movies...</p>
+                    </div>
+                </div>
+            `;
         }
         
         // Make AJAX request to get movies for the selected date
@@ -338,10 +347,12 @@ document.addEventListener('DOMContentLoaded', function() {
             if (moviesContainer) {
                 moviesContainer.innerHTML = `
                     <div class="col-12">
-                        <div class="alert alert-danger text-center">
-                            <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
-                            <h4>Error Loading Movies</h4>
-                            <p class="mb-0">Unable to load movies for the selected date. Please try again.</p>
+                        <div class="centered-alert">
+                            <div class="alert alert-danger text-center">
+                                <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+                                <h4>Error Loading Movies</h4>
+                                <p class="mb-0">Unable to load movies for the selected date. Please try again.</p>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -356,10 +367,12 @@ document.addEventListener('DOMContentLoaded', function() {
         if (movies.length === 0) {
             moviesContainer.innerHTML = `
                 <div class="col-12">
-                    <div class="alert alert-info text-center">
-                        <i class="fas fa-film fa-2x mb-3"></i>
-                        <h4>No Movies Available</h4>
-                        <p class="mb-0">No movies are showing on the selected date. Try selecting a different date!</p>
+                    <div class="centered-alert">
+                        <div class="alert alert-info text-center">
+                            <i class="fas fa-film fa-2x mb-3"></i>
+                            <h4>No Movies Available</h4>
+                            <p class="mb-0">No movies are showing on the selected date. Try selecting a different date!</p>
+                        </div>
                     </div>
                 </div>
             `;
