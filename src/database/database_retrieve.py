@@ -109,7 +109,14 @@ def get_movies_with_showings():
                     WHERE movie_id = %s 
                     ORDER BY date, starttime
                 """, (movie['id'],))
-                movie['showings'] = cursor.fetchall()
+                showings = cursor.fetchall()
+                
+                # Convert timedelta objects to total seconds for JSON serialization
+                for showing in showings:
+                    if hasattr(showing['starttime'], 'total_seconds'):
+                        showing['starttime'] = showing['starttime'].total_seconds()
+                
+                movie['showings'] = showings
             
             return movies
         finally:

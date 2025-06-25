@@ -307,6 +307,10 @@ h2 {
   transition: var(--transition);
 }
 
+.movie-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-lg);
+}
 
 /* ================================
    BUTTON STYLES
@@ -679,4 +683,161 @@ h2 {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* ================================
+   DATE SELECTOR STYLES
+   ================================ */
+.date-selector-container {
+  margin-bottom: 1.5rem;
+}
+
+.date-selector {
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary-color) var(--bg-light);
+}
+
+.date-selector::-webkit-scrollbar {
+  height: 6px;
+}
+
+.date-selector::-webkit-scrollbar-track {
+  background: var(--bg-light);
+  border-radius: 3px;
+}
+
+.date-selector::-webkit-scrollbar-thumb {
+  background: var(--primary-color);
+  border-radius: 3px;
+}
+
+.date-selector::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-hover);
+}
+
+.date-btn {
+  min-width: 70px;
+  padding: 0.75rem 0.5rem;
+  border: 2px solid var(--primary-color);
+  background: transparent;
+  transition: var(--transition-fast);
+}
+
+.date-btn:hover {
+  background: var(--primary-color);
+  color: white;
+  transform: translateY(-2px);
+}
+
+.date-btn.active {
+  background: var(--primary-color);
+  color: white;
+  box-shadow: var(--shadow);
+}
+
+.date-btn .small {
+  font-size: 0.75rem;
+  line-height: 1;
+}
+
+.date-btn .fw-bold {
+  font-size: 1.1rem;
+  margin: 0.25rem 0;
+}
+
+/* ================================
+   DATE CAROUSEL STYLES
+   ================================ */
+.date-carousel-container {
+  position: relative;
+  min-height: 90px;
+  padding: 0 60px;
+  margin-bottom: 2rem;
+}
+
+.date-carousel {
+  overflow: hidden;
+  margin: 0 40px;
+}
+
+.date-carousel-track {
+  transition: transform 0.3s ease;
+  display: flex;
+  gap: 8px;
+}
+
+.carousel-nav-btn {
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border: 2px solid #dee2e6 !important;
+  background-color: #ffffff !important;
+  color: #6c757d !important;
+}
+
+.carousel-nav-btn:hover:not(:disabled) {
+  background-color: #f8f9fa !important;
+  border-color: #6c757d !important;
+  transform: scale(1.05);
+  color: #495057 !important;
+}
+
+.carousel-nav-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.date-btn {
+  transition: all 0.2s ease;
+  border: 2px solid #dee2e6;
+  background-color: #ffffff;
+  min-width: 120px;
+  height: 70px;
+}
+
+.date-btn:hover {
+  border-color: #0d6efd;
+  background-color: #e7f3ff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.date-btn.active {
+  background-color: #0d6efd !important;
+  border-color: #0d6efd !important;
+  color: white !important;
+  box-shadow: 0 4px 8px rgba(13, 110, 253, 0.3);
+}
+
+.date-btn.active:hover {
+  background-color: #0b5ed7 !important;
+  border-color: #0b5ed7 !important;
+  transform: translateY(-2px);
+}
+
+/* Calendar picker styles */
+#calendarPicker {
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  z-index: 1000;
+}
+
+/* Showing time buttons */
+.showing-time-btn {
+  transition: all 0.2s ease;
+  border-radius: 20px;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.showing-time-btn:hover {
+  background-color: #0d6efd;
+  border-color: #0d6efd;
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(13, 110, 253, 0.3);
 }
