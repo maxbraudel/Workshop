@@ -58,8 +58,8 @@ def create_user(username, email, password):
             password_hash = generate_password_hash(password)
             
             cursor.execute("""
-                INSERT INTO account (username, email, password_hash)
-                VALUES (%s, %s, %s)
+                INSERT INTO account (username, email, password_hash, password_modified_at)
+                VALUES (%s, %s, %s, NOW())
             """, (username, email, password_hash))
             
             conn.commit()
@@ -107,8 +107,8 @@ def add_account(first_name, last_name, email, username, password):
             
             # Insert new account
             cursor.execute("""
-                INSERT INTO account (first_name, last_name, email, username, password_hash)
-                VALUES (%s, %s, %s, %s, %s)
+                INSERT INTO account (first_name, last_name, email, username, password_hash, password_modified_at)
+                VALUES (%s, %s, %s, %s, %s, NOW())
             """, (first_name, last_name, email, username, password_hash))
             
             conn.commit()

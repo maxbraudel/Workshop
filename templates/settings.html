@@ -116,7 +116,14 @@
         <div class="card-body">
           <div class="mb-3">
             <h6 class="fw-bold">Password</h6>
-            <p class="text-muted small mb-2">Last changed: Never</p>
+            <p class="text-muted small mb-2">
+              Last changed: 
+              {% if user.password_modified_at %}
+                {{ user.password_modified_at.strftime('%B %d, %Y') }}
+              {% else %}
+                Never
+              {% endif %}
+            </p>
             <button class="btn btn-outline-warning btn-sm w-100" type="button" data-bs-toggle="collapse" data-bs-target="#changePasswordForm" aria-expanded="false" aria-controls="changePasswordForm">
               <i class="fas fa-key me-2"></i>
               Change Password
