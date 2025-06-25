@@ -216,7 +216,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const isToday = index === 0;
             
             const dateButton = document.createElement('button');
-            dateButton.className = `btn btn-outline-primary me-2 flex-shrink-0 date-btn ${isToday ? 'active' : ''}`;
+            dateButton.className = `me-2 flex-shrink-0 date-btn ${isToday ? 'active' : ''}`;
             dateButton.dataset.date = dateInfo.fullDate;
             dateButton.style.minWidth = '120px';
             dateButton.style.height = '70px';
@@ -224,16 +224,16 @@ document.addEventListener('DOMContentLoaded', function() {
             if (index <= 1) {
                 // Today and Tomorrow
                 dateButton.innerHTML = `
-                    <div class="text-center">
+                    <div class="d-flex flex-column align-items-center justify-content-center h-100">
                         <div class="fw-bold">${dateInfo.dayName}</div>
                     </div>
                 `;
             } else {
                 // Other days
                 dateButton.innerHTML = `
-                    <div class="text-center">
+                    <div class="d-flex flex-column align-items-center justify-content-center h-100">
                         <div class="small text-uppercase">${dateInfo.dayName}</div>
-                        <div class="fw-bold fs-5">${dateInfo.dayNumber}</div>
+                        <div class="fw-bold">${dateInfo.dayNumber}</div>
                         <div class="small">${dateInfo.monthName}</div>
                     </div>
                 `;
