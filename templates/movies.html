@@ -35,11 +35,11 @@
     </div>
   </div>
   
-  <div class="row">
+  <div class="row" style="min-height: 30vh;">
     <div class="col-12">
       
       {% if movies %}
-        <div class="row">
+        <div class="row" id="moviesContainer">
           {% for movie in movies %}
             <div class="col-12 col-md-6 mb-4">
               <div class="card movie-card h-100">
@@ -310,43 +310,141 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('.date-btn').forEach(btn => btn.classList.remove('active'));
         buttonElement.classList.add('active');
         
-        updateShowings(selectedDateValue);
+        // Fetch movies for the selected date
+        fetchMoviesForDate(selectedDateValue);
+    }
+    
+    function fetchMoviesForDate(selectedDateValue) {
+        // Show loading state
+        const moviesContainer = document.getElementById('moviesContainer');
+        if (moviesContainer) {
+            moviesContainer.innerHTML = '<div class="col-12 text-center"><div class="spinner"></div><p>Loading movies...</p></div>';
+        }
+        
+        // Make AJAX request to get movies for the selected date
+        fetch(`/movies?date=${selectedDateValue}`, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            updateMoviesList(data.movies);
+        })
+        .catch(error => {
+            console.error('Error fetching movies:', error);
+            if (moviesContainer) {
+                moviesContainer.innerHTML = `
+                    <div class="col-12">
+                        <div class="alert alert-danger text-center">
+                            <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+                            <h4>Error Loading Movies</h4>
+                            <p class="mb-0">Unable to load movies for the selected date. Please try again.</p>
+                        </div>
+                    </div>
+                `;
+            }
+        });
+    }
+    
+    function updateMoviesList(movies) {
+        const moviesContainer = document.getElementById('moviesContainer');
+        if (!moviesContainer) return;
+        
+        if (movies.length === 0) {
+            moviesContainer.innerHTML = `
+                <div class="col-12">
+                    <div class="alert alert-info text-center">
+                        <i class="fas fa-film fa-2x mb-3"></i>
+                        <h4>No Movies Available</h4>
+                        <p class="mb-0">No movies are showing on the selected date. Try selecting a different date!</p>
+                    </div>
+                </div>
+            `;
+            return;
+        }
+        
+        let moviesHTML = '';
+        movies.forEach(movie => {
+            moviesHTML += `
+                <div class="col-12 col-md-6 mb-4">
+                    <div class="card movie-card h-100 shadow-sm border-0">
+                        <div class="card-body d-flex flex-column">
+                            <!-- Movie Title -->
+                            <h5 class="card-title fw-bold text-primary mb-2">
+                                ${movie.name}
+                            </h5>
+                            
+                            <!-- Duration Badge -->
+                            <div class="mb-3">
+                                <span class="badge bg-secondary">
+                                    <i class="fas fa-clock me-1"></i>
+                                    ${movie.duration} min
+                                </span>
+                            </div>
+                            
+                            <!-- Director -->
+                            <p class="mb-2">
+                                <strong>Directed by:</strong> 
+                                <span class="text-muted">${movie.director}</span>
+                            </p>
+                            
+                            <!-- Cast -->
+                            <p class="mb-3">
+                                <strong>Cast:</strong> 
+                                <span class="text-muted">${movie.cast}</span>
+                            </p>
+                            
+                            <!-- Synopsis -->
+                            <div class="mt-auto">
+                                <h6 class="fw-bold mb-2">Synopsis</h6>
+                                <p class="card-text text-muted small">
+                                    ${movie.synopsis}
+                                </p>
+                            </div>
+                            
+                            <!-- Showings -->
+                            <div class="mt-3 pt-3 border-top">
+                                <div class="showings-container" data-movie-id="${movie.id}">
+                                    ${generateShowingsHTML(movie.showings)}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        moviesContainer.innerHTML = moviesHTML;
+    }
+    
+    function generateShowingsHTML(showings) {
+        if (!showings || showings.length === 0) {
+            return `
+                <p class="text-muted small mb-0">
+                    <i class="fas fa-info-circle me-1"></i>
+                    No showings available for this date
+                </p>
+            `;
+        }
+        
+        const showingsButtons = showings.map(showing => `
+            <button class="btn date-btn showing-time-btn" style="min-width: auto; padding: 0.75rem 1rem;">
+                <div class="d-flex flex-column align-items-center justify-content-center h-100">
+                    <div class="fw-bold">${formatTime(showing.starttime)}</div>
+                </div>
+            </button>
+        `).join('');
+        
+        return `<div class="d-flex flex-wrap gap-2">${showingsButtons}</div>`;
     }
     
     function updateShowings(selectedDateValue) {
-        // Update showings for each movie
-        showingsContainers.forEach(container => {
-            const movieId = parseInt(container.dataset.movieId);
-            const movie = moviesData.find(m => m.id === movieId);
-            
-            if (movie && movie.showings) {
-                const showingsForDate = movie.showings.filter(showing => {
-                    const showingDate = new Date(showing.date).toISOString().split('T')[0];
-                    return showingDate === selectedDateValue;
-                });
-                
-                if (showingsForDate.length > 0) {
-                    container.innerHTML = `
-                        <div class="d-flex flex-wrap gap-2">
-                            ${showingsForDate.map(showing => `
-                                <button class="btn date-btn" style="min-width: auto; padding: 0.75rem 1rem;">
-                                    <div class="d-flex flex-column align-items-center justify-content-center h-100">
-                                        <div class="fw-bold">${formatTime(showing.starttime)}</div>
-                                    </div>
-                                </button>
-                            `).join('')}
-                        </div>
-                    `;
-                } else {
-                    container.innerHTML = `
-                        <p class="text-muted small mb-0">
-                            <i class="fas fa-info-circle me-1"></i>
-                            No showings available for this date
-                        </p>
-                    `;
-                }
-            }
-        });
+        // This function is no longer needed since we're fetching from server
+        // But keeping it for backward compatibility
+        console.log('updateShowings called - this should not happen anymore');
     }
     
     // Initialize the carousel

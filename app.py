@@ -12,6 +12,7 @@ from src.database import (
     validate_session_token,
     get_all_movies,
     get_movies_with_showings,
+    get_movies_with_showings_by_date,
     get_user_by_id,
     add_account,
     modify_account_profile,
@@ -49,9 +50,20 @@ def movies():
     # Store this page as the last non-auth page
     session['last_non_auth_page'] = url_for('movies')
     
-    # Get all movies with their showings from the database
+    # Check if this is an AJAX request for a specific date
+    selected_date = request.args.get('date')
+    
+    # Get movies with their showings from the database
     try:
-        movies_list = get_movies_with_showings()
+        if selected_date:
+            # Get movies for specific date
+            movies_list = get_movies_with_showings_by_date(selected_date)
+        else:
+            # Get movies for today by default
+            from datetime import date
+            today = date.today().isoformat()
+            movies_list = get_movies_with_showings_by_date(today)
+            
         if movies_list is None:  # Database error occurred
             flash('Server unavailable, please try again later.', 'error')
             movies_list = []  # Show empty list instead of crashing
@@ -59,6 +71,10 @@ def movies():
         flash('Server unavailable, please try again later.', 'error')
         print(f"Movies page error: {e}")  # Log for debugging
         movies_list = []
+    
+    # If this is an AJAX request, return JSON
+    if request.headers.get('Content-Type') == 'application/json' or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return jsonify({'movies': movies_list})
     
     return render_template('movies.html', movies=movies_list, storeUrl=True)
 

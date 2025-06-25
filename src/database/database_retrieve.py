@@ -121,3 +121,41 @@ def get_movies_with_showings():
             return movies
         finally:
             cursor.close()
+
+@handle_db_errors(default_return=[])
+def get_movies_with_showings_by_date(target_date):
+    """Get movies that have showings on a specific date"""
+    with get_db_connection() as conn:
+        cursor = conn.cursor(dictionary=True)
+        
+        try:
+            # Get movies that have showings on the target date
+            cursor.execute("""
+                SELECT DISTINCT m.* 
+                FROM movie m
+                INNER JOIN showing s ON m.id = s.movie_id
+                WHERE DATE(s.date) = %s
+                ORDER BY m.name
+            """, (target_date,))
+            movies = cursor.fetchall()
+            
+            # For each movie, get its showings for the target date
+            for movie in movies:
+                cursor.execute("""
+                    SELECT id, date, starttime, baseprice, room_id 
+                    FROM showing 
+                    WHERE movie_id = %s AND DATE(date) = %s
+                    ORDER BY starttime
+                """, (movie['id'], target_date))
+                showings = cursor.fetchall()
+                
+                # Convert timedelta objects to total seconds for JSON serialization
+                for showing in showings:
+                    if hasattr(showing['starttime'], 'total_seconds'):
+                        showing['starttime'] = showing['starttime'].total_seconds()
+                
+                movie['showings'] = showings
+            
+            return movies
+        finally:
+            cursor.close()
