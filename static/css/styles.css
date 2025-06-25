@@ -112,6 +112,10 @@ body {
   outline: none !important;
 }
 
+.nav-link:hover {
+  opacity: 0.7;
+}
+
 /* User dropdown styles */
 .dropdown-menu {
   border: none;
@@ -302,15 +306,9 @@ h2 {
 /* Movie card specific styles */
 .movie-card {
   height: 100%;
-  border: none;
-  box-shadow: var(--shadow-sm);
-  transition: var(--transition);
+  border: 1px solid #dee2e6;
 }
 
-.movie-card:hover {
-  transform: translateY(-5px);
-  box-shadow: var(--shadow-lg);
-}
 
 /* ================================
    BUTTON STYLES
@@ -759,6 +757,29 @@ h2 {
   overflow: hidden;
   margin: 0px 8px;
   height: 100%;
+  position: relative;
+}
+
+/* Gradient overlays for smooth fade effect */
+.date-carousel::before,
+.date-carousel::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 40px;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.date-carousel::before {
+  left: 0;
+  background: linear-gradient(to right, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0));
+}
+
+.date-carousel::after {
+  right: 0;
+  background: linear-gradient(to left, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0));
 }
 
 .date-carousel-track {
@@ -779,16 +800,16 @@ h2 {
 
 
 .carousel-nav-btn:hover:not(:disabled) {
-  background-color: #f8f9fa !important;
-  border-color: #6c757d !important;
+  background-color: #e7f3ff !important;
+  border-color: var(--primary-color) !important;
   transform: scale(1.05);
   color: #495057 !important;
 }
 
 .carousel-nav-btn:disabled {
   opacity: 0.5;
-  cursor: not-allowed;
   transform: none;
+  cursor: default !important
 }
 
 .date-btn {
