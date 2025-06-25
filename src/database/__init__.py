@@ -21,6 +21,7 @@ from .database import (
 
 # Import retrieve functions
 from .database_retrieve import (
+    get_user_by_id,
     get_user_by_username,
     get_user_by_email,
     validate_session_token,
@@ -56,6 +57,7 @@ __all__ = [
     'logger',
     
     # Retrieve functions
+    'get_user_by_id',
     'get_user_by_username',
     'get_user_by_email',
     'validate_session_token',

@@ -1,0 +1,206 @@
+<!-- templates/profile.html -->
+{% extends "base.html" %}
+
+{% block title %}My Profile - Cinemacousas{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-12">
+      <!-- Page Header -->
+      <div class="d-flex align-items-center mb-4">
+        <i class="fas fa-user-circle fa-3x text-primary me-3"></i>
+        <div>
+          <h2 class="mb-1">My Profile</h2>
+          <p class="text-muted mb-0">Manage your account information and settings</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- User Information Card -->
+    <div class="col-lg-8 mb-4">
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">
+            <i class="fas fa-user me-2"></i>
+            Personal Information
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-bold text-muted">First Name</label>
+              <div class="form-control-plaintext bg-light px-3 py-2 rounded">
+                {{ user.first_name or 'Not provided' }}
+              </div>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-bold text-muted">Last Name</label>
+              <div class="form-control-plaintext bg-light px-3 py-2 rounded">
+                {{ user.last_name or 'Not provided' }}
+              </div>
+            </div>
+          </div>
+          
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-bold text-muted">Username</label>
+              <div class="form-control-plaintext bg-light px-3 py-2 rounded">
+                <i class="fas fa-at me-2 text-primary"></i>
+                {{ user.username }}
+              </div>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-bold text-muted">Email Address</label>
+              <div class="form-control-plaintext bg-light px-3 py-2 rounded">
+                <i class="fas fa-envelope me-2 text-primary"></i>
+                {{ user.email }}
+              </div>
+            </div>
+          </div>
+          
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-bold text-muted">Member Since</label>
+              <div class="form-control-plaintext bg-light px-3 py-2 rounded">
+                <i class="fas fa-calendar-alt me-2 text-primary"></i>
+                {% if user.created_at %}
+                  {{ user.created_at.strftime('%B %d, %Y') }}
+                {% else %}
+                  Account creation date not available
+                {% endif %}
+              </div>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-bold text-muted">Last Modified</label>
+              <div class="form-control-plaintext bg-light px-3 py-2 rounded">
+                <i class="fas fa-edit me-2 text-primary"></i>
+                {% if user.modified_at %}
+                  {{ user.modified_at.strftime('%B %d, %Y at %I:%M %p') }}
+                {% else %}
+                  Never modified
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          
+          <!-- Action Buttons -->
+          <div class="row mt-4">
+            <div class="col-12">
+              <div class="d-grid gap-2 d-md-flex">
+                <button class="btn btn-primary" disabled>
+                  <i class="fas fa-edit me-2"></i>
+                  Edit Profile
+                </button>
+                <button class="btn btn-outline-secondary" disabled>
+                  <i class="fas fa-key me-2"></i>
+                  Change Password
+                </button>
+              </div>
+              <small class="text-muted mt-2 d-block">
+                <i class="fas fa-info-circle me-1"></i>
+                Profile editing features coming soon!
+              </small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Account Statistics Card -->
+    <div class="col-lg-4 mb-4">
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-success text-white">
+          <h5 class="mb-0">
+            <i class="fas fa-chart-bar me-2"></i>
+            Account Statistics
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="mb-3">
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="text-muted">Account Age</span>
+              <span class="fw-bold text-success">
+                {% if user.created_at %}
+                  {{ user.created_at.strftime('%B %d, %Y') }}
+                {% else %}
+                  Unknown
+                {% endif %}
+              </span>
+            </div>
+          </div>
+          
+          <div class="mb-3">
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="text-muted">Total Tickets</span>
+              <span class="fw-bold text-primary">0</span>
+            </div>
+          </div>
+          
+          <div class="mb-3">
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="text-muted">Favorite Genre</span>
+              <span class="fw-bold text-info">Action</span>
+            </div>
+          </div>
+          
+          <div class="alert alert-info mt-3" role="alert">
+            <i class="fas fa-info-circle me-2"></i>
+            <small>More detailed statistics will be available once you start booking tickets!</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Quick Actions -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-info text-white">
+          <h5 class="mb-0">
+            <i class="fas fa-bolt me-2"></i>
+            Quick Actions
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="row text-center">
+            <div class="col-md-3 mb-3">
+              <a href="{{ url_for('movies') }}" class="text-decoration-none">
+                <div class="p-3 bg-light rounded">
+                  <i class="fas fa-film fa-2x text-primary mb-2"></i>
+                  <h6 class="text-dark">Browse Movies</h6>
+                  <small class="text-muted">Discover new films</small>
+                </div>
+              </a>
+            </div>
+            <div class="col-md-3 mb-3">
+              <div class="p-3 bg-light rounded">
+                <i class="fas fa-ticket-alt fa-2x text-secondary mb-2"></i>
+                <h6 class="text-muted">My Tickets</h6>
+                <small class="text-muted">Coming soon</small>
+              </div>
+            </div>
+            <div class="col-md-3 mb-3">
+              <div class="p-3 bg-light rounded">
+                <i class="fas fa-heart fa-2x text-secondary mb-2"></i>
+                <h6 class="text-muted">Favorites</h6>
+                <small class="text-muted">Coming soon</small>
+              </div>
+            </div>
+            <div class="col-md-3 mb-3">
+              <div class="p-3 bg-light rounded">
+                <i class="fas fa-history fa-2x text-secondary mb-2"></i>
+                <h6 class="text-muted">Watch History</h6>
+                <small class="text-muted">Coming soon</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

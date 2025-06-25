@@ -11,6 +11,7 @@ from src.database import (
     invalidate_session_token,
     validate_session_token,
     get_all_movies,
+    get_user_by_id,
     add_account,
     validate_signup_data,
     validate_signup_identifiers,
@@ -229,6 +230,28 @@ def get_cancel_redirect():
     """API endpoint to get the correct redirect URL for cancel buttons"""
     redirect_url = session.get('last_non_auth_page', url_for('index'))
     return jsonify({'redirect_url': redirect_url})
+
+@app.route('/profile')
+@login_required
+def profile():
+    """User profile page - requires authentication"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            flash('Session error. Please log in again.', 'error')
+            return redirect(url_for('login'))
+        
+        # Get user information from database
+        user = get_user_by_id(user_id)
+        if not user:
+            flash('User information not found.', 'error')
+            return redirect(url_for('index'))
+        
+        return render_template('profile.html', user=user)
+    except Exception as e:
+        flash('Server unavailable, please try again later.', 'error')
+        print(f"Profile page error: {e}")  # Log for debugging
+        return redirect(url_for('index'))
 
 # Helper function to check if a URL is an authentication page
 def is_auth_page(url):

@@ -1,6 +1,19 @@
 from .database import get_db_connection, handle_db_errors, logger
 
 @handle_db_errors(default_return=None)
+def get_user_by_id(user_id):
+    """Get user from database by ID with full profile information"""
+    with get_db_connection() as conn:
+        cursor = conn.cursor(dictionary=True)
+        
+        try:
+            cursor.execute("SELECT id, email, username, first_name, last_name, created_at, modified_at FROM account WHERE id = %s", (user_id,))
+            user = cursor.fetchone()
+            return user
+        finally:
+            cursor.close()
+
+@handle_db_errors(default_return=None)
 def get_user_by_username(username):
     """Get user from database by username"""
     with get_db_connection() as conn:
