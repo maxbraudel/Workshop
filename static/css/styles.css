@@ -823,14 +823,12 @@ h2 {
 .date-btn:hover {
   border-color: #0d6efd;
   background-color: #e7f3ff;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
 .date-btn.active {
   background-color: #0d6efd !important;
   border-color: #0d6efd !important;
   color: white !important;
-  box-shadow: 0 4px 8px rgba(13, 110, 253, 0.3);
 }
 
 .date-btn.active:hover {
@@ -848,18 +846,3 @@ h2 {
 }
 
 /* Showing time buttons */
-.showing-time-btn {
-  transition: all 0.2s ease;
-  border-radius: 20px;
-  padding: 8px 16px;
-  font-size: 0.9rem;
-  font-weight: 500;
-}
-
-.showing-time-btn:hover {
-  background-color: #0d6efd;
-  border-color: #0d6efd;
-  color: white;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(13, 110, 253, 0.3);
-}
