@@ -89,3 +89,28 @@ def get_all_movies():
             return movies
         finally:
             cursor.close()
+
+@handle_db_errors(default_return=[])
+def get_movies_with_showings():
+    """Get all movies with their showings"""
+    with get_db_connection() as conn:
+        cursor = conn.cursor(dictionary=True)
+        
+        try:
+            # Get all movies
+            cursor.execute("SELECT * FROM movie ORDER BY name")
+            movies = cursor.fetchall()
+            
+            # For each movie, get its showings
+            for movie in movies:
+                cursor.execute("""
+                    SELECT id, date, starttime, baseprice, room_id 
+                    FROM showing 
+                    WHERE movie_id = %s 
+                    ORDER BY date, starttime
+                """, (movie['id'],))
+                movie['showings'] = cursor.fetchall()
+            
+            return movies
+        finally:
+            cursor.close()

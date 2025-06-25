@@ -26,7 +26,8 @@ from .database_retrieve import (
     get_user_by_email,
     validate_session_token,
     get_user_sessions,
-    get_all_movies
+    get_all_movies,
+    get_movies_with_showings
 )
 
 # Import validation functions

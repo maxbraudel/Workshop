@@ -11,6 +11,7 @@ from src.database import (
     invalidate_session_token,
     validate_session_token,
     get_all_movies,
+    get_movies_with_showings,
     get_user_by_id,
     add_account,
     modify_account_profile,
@@ -48,9 +49,9 @@ def movies():
     # Store this page as the last non-auth page
     session['last_non_auth_page'] = url_for('movies')
     
-    # Get all movies from the database
+    # Get all movies with their showings from the database
     try:
-        movies_list = get_all_movies()
+        movies_list = get_movies_with_showings()
         if movies_list is None:  # Database error occurred
             flash('Server unavailable, please try again later.', 'error')
             movies_list = []  # Show empty list instead of crashing

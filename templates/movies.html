@@ -53,12 +53,42 @@
                   
                   <!-- Action Buttons -->
                   <div class="mt-3 pt-3 border-top">
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                      <button class="btn btn-primary btn-sm">
-                        <i class="fas fa-ticket-alt me-1"></i>
-                        Book Tickets
-                      </button>
-                    </div>
+                    <h6 class="fw-bold mb-2">Showings</h6>
+                    {% if movie.showings %}
+                      <div class="row g-2">
+                        {% for showing in movie.showings %}
+                          <div class="col-12">
+                            <div class="card border-light bg-light">
+                              <div class="card-body py-2 px-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                  <div>
+                                    <small class="text-muted">
+                                      <i class="fas fa-calendar me-1"></i>
+                                      {{ showing.date.strftime('%B %d, %Y') }}
+                                    </small>
+                                    <div class="fw-bold">
+                                      <i class="fas fa-clock me-1"></i>
+                                      {{ "%02d:%02d"|format(showing.starttime.seconds // 3600, (showing.starttime.seconds % 3600) // 60) }}
+                                    </div>
+                                  </div>
+                                  <div class="text-end">
+                                    <small class="text-muted">Room {{ showing.room_id }}</small>
+                                    <div class="fw-bold text-primary">
+                                      ${{ "%.2f"|format(showing.baseprice / 100) }}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        {% endfor %}
+                      </div>
+                    {% else %}
+                      <p class="text-muted small mb-0">
+                        <i class="fas fa-info-circle me-1"></i>
+                        No showings available
+                      </p>
+                    {% endif %}
                   </div>
                 </div>
               </div>
