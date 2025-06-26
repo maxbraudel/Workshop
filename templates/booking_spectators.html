@@ -176,7 +176,7 @@
                 </div>
               </div>
               <div class="mt-2 small text-muted" id="priceBreakdown">
-                {{ num_spectators }} Adult{{ 's' if num_spectators > 1 else '' }} (Base: €{{ "%.2f"|format(showing.baseprice / 100) }}) - Enter birth dates for accurate pricing
+                {{ num_spectators }} Adult{{ 's' if num_spectators > 1 else '' }} (Base: €{{ "%.2f"|format(showing.baseprice / 100) }})
               </div>
             </div>
           </form>
@@ -327,9 +327,9 @@ function calculateAge(birthDate) {
 
 // Get age category for pricing
 function getAgeCategory(age) {
-  if (age < 12) return 'Enfant';
+  if (age < 12) return 'Child';
   if (age >= 65) return 'Senior';
-  return 'Adulte';
+  return 'Adult';
 }
 
 // Calculate and update price
@@ -368,10 +368,12 @@ async function updatePrice() {
   
   // Show loading
   document.getElementById('totalPrice').innerHTML = `
-    <div class="spinner-border spinner-border-sm me-2" role="status">
-      <span class="visually-hidden">Loading...</span>
+    <div class="d-flex align-items-center">
+      <div class="spinner-border spinner-border-sm me-2" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <span>Calculating</span>
     </div>
-    Calculating...
   `;
   
   try {
