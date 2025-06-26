@@ -37,69 +37,85 @@
   
   <div class="row" style="min-height: 30vh;">
     <div class="col-12">
-      
-      {% if movies %}
-        <div class="row" id="moviesContainer">
-          {% for movie in movies %}
-            <div class="col-12 col-md-6 mb-4">
-              <div class="card movie-card h-100">
-                <div class="card-body d-flex flex-column">
-                  <!-- Movie Title -->
-                  <h5 class="card-title fw-bold text-primary mb-2">
-                    {{ movie.name }}
-                  </h5>
-                  
-                  <!-- Duration Badge -->
-                  <div class="mb-3">
-                    <span class="badge bg-secondary">
-                      <i class="fas fa-clock me-1"></i>
-                      {{ movie.duration }} min
-                    </span>
-                  </div>
-                  
-                  <!-- Director -->
-                  <p class="mb-2">
-                    <strong>Directed by:</strong> 
-                    <span class="text-muted">{{ movie.director }}</span>
-                  </p>
-                  
-                  <!-- Cast -->
-                  <p class="mb-3">
-                    <strong>Cast:</strong> 
-                    <span class="text-muted">{{ movie.cast }}</span>
-                  </p>
-                  
-                  <!-- Synopsis -->
-                  <div class="mt-auto">
-                    <h6 class="fw-bold mb-2">Synopsis</h6>
-                    <p class="card-text text-muted small">
-                      {{ movie.synopsis }}
+      <!-- Movies Container - Always present for JavaScript to target -->
+      <div id="moviesContainer">
+        {% if movies %}
+          <div class="row">
+            {% for movie in movies %}
+              <div class="col-12 col-md-6 mb-4">
+                <div class="card movie-card h-100">
+                  <div class="card-body d-flex flex-column">
+                    <!-- Movie Title -->
+                    <h5 class="card-title fw-bold text-primary mb-2">
+                      {{ movie.name }}
+                    </h5>
+                    
+                    <!-- Duration Badge -->
+                    <div class="mb-3">
+                      <span class="badge bg-secondary">
+                        <i class="fas fa-clock me-1"></i>
+                        {{ movie.duration }} min
+                      </span>
+                    </div>
+                    
+                    <!-- Director -->
+                    <p class="mb-2">
+                      <strong>Directed by:</strong> 
+                      <span class="text-muted">{{ movie.director }}</span>
                     </p>
-                  </div>
-                  
-                  <!-- Showings -->
-                  <div class="mt-3 pt-4 border-top">
-                    <div class="showings-container" data-movie-id="{{ movie.id }}">
-                      <p class="text-muted small mb-0">
-                        <i class="fas fa-info-circle me-1"></i>
-                        Select a date to see available showtimes
+                    
+                    <!-- Cast -->
+                    <p class="mb-3">
+                      <strong>Cast:</strong> 
+                      <span class="text-muted">{{ movie.cast }}</span>
+                    </p>
+                    
+                    <!-- Synopsis -->
+                    <div class="mt-auto">
+                      <h6 class="fw-bold mb-2">Synopsis</h6>
+                      <p class="card-text text-muted small">
+                        {{ movie.synopsis }}
                       </p>
+                    </div>
+                    
+                    <!-- Showings -->
+                    <div class="mt-3 pt-4 border-top">
+                      <div class="showings-container" data-movie-id="{{ movie.id }}">
+                        {% if movie.showings %}
+                          <div class="d-flex flex-wrap gap-2">
+                            {% for showing in movie.showings %}
+                              <button class="btn date-btn showing-time-btn" 
+                                      style="min-width: auto; padding: 0.75rem 1rem;" 
+                                      onclick="bookShowing({{ showing.id }})">
+                                <div class="d-flex flex-column align-items-center justify-content-center h-100">
+                                  <div class="fw-bold">{{ showing.starttime|seconds_to_time }}</div>
+                                </div>
+                              </button>
+                            {% endfor %}
+                          </div>
+                        {% else %}
+                          <p class="text-muted small mb-0">
+                            <i class="fas fa-info-circle me-1"></i>
+                            No showings available for today
+                          </p>
+                        {% endif %}
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          {% endfor %}
-        </div>
-      {% else %}
-        <div class="centered-alert">
-          <div class="alert alert-info text-center">
-            <i class="fas fa-film fa-2x mb-3"></i>
-            <h4>No Movies Available</h4>
-            <p class="mb-0">Check back later for new movie releases!</p>
+            {% endfor %}
           </div>
-        </div>
-      {% endif %}
+        {% else %}
+          <div class="centered-alert">
+            <div class="alert alert-info text-center">
+              <i class="fas fa-film fa-2x mb-3"></i>
+              <h4>No Movies Available</h4>
+              <p class="mb-0">Check back later for new movie releases!</p>
+            </div>
+          </div>
+        {% endif %}
+      </div>
     </div>
   </div>
 </div>
@@ -107,6 +123,12 @@
 
 {% block scripts %}
 <script>
+// Handle booking a showing - define globally so onclick handlers can access it
+function bookShowing(showingId) {
+    // Redirect to the seat selection page
+    window.location.href = `/showing/${showingId}/seats`;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     const dateCarousel = document.getElementById('dateCarousel');
     const showingsContainers = document.querySelectorAll('.showings-container');
@@ -220,16 +242,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 `;
             }
             
-            dateButton.addEventListener('click', () => selectDateHandler(dateInfo.fullDate, dateButton));
+            dateButton.addEventListener('click', (e) => {
+                console.log('Date button clicked!', {
+                    date: dateInfo.fullDate,
+                    buttonElement: dateButton,
+                    event: e
+                });
+                selectDateHandler(dateInfo.fullDate, dateButton);
+            });
             dateCarousel.appendChild(dateButton);
             dateButtons.push(dateButton);
         });
         
-        // Select today by default
+        // Select today by default - but don't set selectedDate until after fetch
         const todayButton = dateCarousel.querySelector('.date-btn.active');
         if (todayButton) {
-            selectedDate = todayButton.dataset.date;
-            selectDateHandler(selectedDate, todayButton);
+            const todayDate = todayButton.dataset.date;
+            selectDateHandler(todayDate, todayButton);
         }
     }
     
@@ -306,20 +335,40 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Select a date and update showings
     function selectDateHandler(selectedDateValue, buttonElement) {
-        selectedDate = selectedDateValue;
+        console.log('selectDateHandler called with:', {
+            date: selectedDateValue,
+            buttonElement: buttonElement,
+            selectedDate: selectedDate
+        });
         
-        // Update active button
+        // Update active button first
+        console.log('Updating active button states');
         document.querySelectorAll('.date-btn').forEach(btn => btn.classList.remove('active'));
         buttonElement.classList.add('active');
         
+        // Only skip fetch if it's the same date AND we're not on initial load
+        if (selectedDateValue === selectedDate && selectedDate !== null) {
+            console.log('Date already selected and data loaded, returning early');
+            return;
+        }
+        
+        console.log('Setting selected date to:', selectedDateValue);
+        selectedDate = selectedDateValue;
+        
         // Fetch movies for the selected date
+        console.log('About to fetch movies for date:', selectedDateValue);
         fetchMoviesForDate(selectedDateValue);
     }
     
     function fetchMoviesForDate(selectedDateValue) {
+        console.log('fetchMoviesForDate called with:', selectedDateValue);
+        
         // Show loading state
         const moviesContainer = document.getElementById('moviesContainer');
+        console.log('Movies container found:', !!moviesContainer);
+        
         if (moviesContainer) {
+            console.log('Setting loading state');
             moviesContainer.innerHTML = `
                 <div class="col-12">
                     <div class="loading-container">
@@ -330,16 +379,22 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
         }
         
+        const requestUrl = `/movies?date=${selectedDateValue}`;
+        console.log('Making AJAX request to:', requestUrl);
+        
         // Make AJAX request to get movies for the selected date
-        fetch(`/movies?date=${selectedDateValue}`, {
+        fetch(requestUrl, {
             method: 'GET',
             headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'Content-Type': 'application/json'
+                'X-Requested-With': 'XMLHttpRequest'
             }
         })
-        .then(response => response.json())
+        .then(response => {
+            console.log('Response received:', response.status, response.statusText);
+            return response.json();
+        })
         .then(data => {
+            console.log('Data received:', data);
             updateMoviesList(data.movies);
         })
         .catch(error => {
@@ -366,13 +421,11 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (movies.length === 0) {
             moviesContainer.innerHTML = `
-                <div class="col-12">
-                    <div class="centered-alert">
-                        <div class="alert alert-info text-center">
-                            <i class="fas fa-film fa-2x mb-3"></i>
-                            <h4>No Movies Available</h4>
-                            <p class="mb-0">No movies are showing on the selected date. Try selecting a different date!</p>
-                        </div>
+                <div class="centered-alert">
+                    <div class="alert alert-info text-center">
+                        <i class="fas fa-film fa-2x mb-3"></i>
+                        <h4>No Movies Available</h4>
+                        <p class="mb-0">No movies are showing on the selected date. Try selecting a different date!</p>
                     </div>
                 </div>
             `;
@@ -430,7 +483,8 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
         });
         
-        moviesContainer.innerHTML = moviesHTML;
+        // Wrap the movies in a row div to match server-rendered HTML structure
+        moviesContainer.innerHTML = `<div class="row">${moviesHTML}</div>`;
     }
     
     function generateShowingsHTML(showings) {
@@ -444,7 +498,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         const showingsButtons = showings.map(showing => `
-            <button class="btn date-btn showing-time-btn" style="min-width: auto; padding: 0.75rem 1rem;">
+            <button class="btn date-btn showing-time-btn" 
+                    style="min-width: auto; padding: 0.75rem 1rem;" 
+                    onclick="bookShowing(${showing.id})">
                 <div class="d-flex flex-column align-items-center justify-content-center h-100">
                     <div class="fw-bold">${formatTime(showing.starttime)}</div>
                 </div>

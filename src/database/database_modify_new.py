@@ -317,11 +317,8 @@ def create_complete_booking(showing_id, booker_info, spectators, seat_assignment
             # Simple pricing: base_price * number of spectators
             total_price = base_price * len(spectators)
             
-            # Handle account_id - use provided account_id or default to 1 for anonymous bookings
-            account_id = booker_info.get('account_id')
-            if account_id is None:
-                # For anonymous bookings, use account_id = 1 (or create a special anonymous account)
-                account_id = 1
+            # Use account_id = 1 as default for anonymous bookings
+            account_id = booker_info.get('account_id', 1)
             
             # Create the booking
             cursor.execute("""

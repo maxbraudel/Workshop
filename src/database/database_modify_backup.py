@@ -257,6 +257,60 @@ def modify_account_password(user_id, current_password, new_password):
         logger.error(f"Unexpected error in modify_account_password: {e}")
         return {"success": False, "error": "Server unavailable, please try again later."}
 
+@handle_db_errors(default_return=None)
+def create_booking(showing_id, total_price, booker_email, booker_first_name, booker_last_name):
+    """Create a new booking and return the booking ID"""
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        
+        try:
+            # Insert the booking
+            cursor.execute("""
+                INSERT INTO booking (showing_id, totalprice, booker_email, booker_first_name, booker_last_name, booking_date)
+                VALUES (%s, %s, %s, %s, %s, NOW())
+            """, (showing_id, total_price, booker_email, booker_first_name, booker_last_name))
+            
+            booking_id = cursor.lastrowid
+            conn.commit()
+            return booking_id
+        finally:
+            cursor.close()
+
+@handle_db_errors(default_return=None)
+def create_customer(booking_id, first_name, last_name, birth_date, age_price_id):
+    """Create a customer/spectator for a booking and return the customer ID"""
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        
+        try:
+            cursor.execute("""
+                INSERT INTO customer (booking_id, first_name, last_name, birth_date, ageprice_id)
+                VALUES (%s, %s, %s, %s, %s)
+            """, (booking_id, first_name, last_name, birth_date, age_price_id))
+            
+            customer_id = cursor.lastrowid
+            conn.commit()
+            return customer_id
+        finally:
+            cursor.close()
+
+@handle_db_errors(default_return=False)
+def create_seat_reservation(seat_id, showing_id, customer_id):
+    """Create a seat reservation for a customer"""
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        
+        try:
+            cursor.execute("""
+                INSERT INTO seatreservation (seat_id, showing_id, customer_id)
+                VALUES (%s, %s, %s)
+            """, (seat_id, showing_id, customer_id))
+            
+            conn.commit()
+            return True
+        finally:
+            cursor.close()
+
 @handle_db_errors(default_return=False)
 def check_seats_availability(seat_ids, showing_id):
     """Check if the given seats are available for the showing"""
@@ -280,6 +334,50 @@ def check_seats_availability(seat_ids, showing_id):
         finally:
             cursor.close()
 
+@handle_db_errors(default_return=None)
+def create_complete_booking(showing_id, booker_info, spectators, seat_assignments):
+    """
+    Create a complete booking with all customers and seat reservations
+    
+    Args:
+        showing_id: ID of the showing
+        booker_info: dict with booker's email, first_name, last_name
+        spectators: list of dicts with spectator info (first_name, last_name, birth_date, age_price_id)
+        seat_assignments: list of seat_ids corresponding to spectators
+    
+    Returns:
+        booking_id if successful, None if failed
+    """
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        
+        try:
+            # Start transaction
+            conn.start_transaction()
+            
+            # Check if all seats are available
+            if not check_seats_availability(seat_assignments, showing_id):
+                conn.rollback()
+                return None
+            
+            # Calculate total price (this should be done on the client side too)
+            total_price = 0
+            
+            # Get the base price for this showing
+            cursor.execute("SELECT baseprice FROM showing WHERE id = %s", (showing_id,))
+            showing_result = cursor.fetchone()
+            if not showing_result:
+                conn.rollback()
+                return None
+            base_price = showing_result[0]
+            
+            for spectator in spectators:
+                # Get the age factor
+                cursor.execute("SELECT factor FROM ageprice WHERE id = %s", (spectator['age_price_id'],))
+                age_price_result = cursor.fetchone()
+                if age_price_result:
+                    total_price += base_price * age_price_result[0]
+            
 @handle_db_errors(default_return=None)
 def create_complete_booking(showing_id, booker_info, spectators, seat_assignments):
     """
@@ -317,11 +415,8 @@ def create_complete_booking(showing_id, booker_info, spectators, seat_assignment
             # Simple pricing: base_price * number of spectators
             total_price = base_price * len(spectators)
             
-            # Handle account_id - use provided account_id or default to 1 for anonymous bookings
-            account_id = booker_info.get('account_id')
-            if account_id is None:
-                # For anonymous bookings, use account_id = 1 (or create a special anonymous account)
-                account_id = 1
+            # Use account_id = 1 as default for anonymous bookings
+            account_id = booker_info.get('account_id', 1)
             
             # Create the booking
             cursor.execute("""

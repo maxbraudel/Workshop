@@ -13,6 +13,13 @@ from src.database import (
     get_all_movies,
     get_movies_with_showings,
     get_movies_with_showings_by_date,
+    get_showing_by_id,
+    get_seats_for_showing,
+    get_booking_by_id,
+    get_customers_for_booking,
+    get_bookings_by_account_id,
+    create_complete_booking,
+    check_seats_availability,
     get_user_by_id,
     add_account,
     modify_account_profile,
@@ -38,6 +45,20 @@ init_error_handlers(app)
 
 # Test database connection
 test_database_connection()
+
+# Custom Jinja2 filter to convert seconds to time format
+@app.template_filter('seconds_to_time')
+def seconds_to_time(seconds):
+    """Convert seconds (float) to HH:MM time format"""
+    if seconds is None:
+        return '00:00'
+    
+    # Convert seconds to hours and minutes
+    total_minutes = int(seconds // 60)
+    hours = total_minutes // 60
+    minutes = total_minutes % 60
+    
+    return f"{hours:02d}:{minutes:02d}"
 
 @app.route('/')
 def index():
@@ -73,7 +94,7 @@ def movies():
         movies_list = []
     
     # If this is an AJAX request, return JSON
-    if request.headers.get('Content-Type') == 'application/json' or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return jsonify({'movies': movies_list})
     
     return render_template('movies.html', movies=movies_list, storeUrl=True)
@@ -369,6 +390,213 @@ def settings():
     except Exception as e:
         flash('Server unavailable, please try again later.', 'error')
         print(f"Settings page error: {e}")  # Log for debugging
+        return redirect(url_for('index'))
+
+@app.route('/showing/<int:showing_id>/seats')
+def showing_seats(showing_id):
+    """Display seat selection page for a showing"""
+    try:
+        # Get showing details
+        showing = get_showing_by_id(showing_id)
+        if not showing:
+            flash('Showing not found.', 'error')
+            return redirect(url_for('movies'))
+        
+        # Get seats for the showing
+        seats = get_seats_for_showing(showing_id)
+        if seats is None:
+            flash('Unable to load seats. Please try again.', 'error')
+            return redirect(url_for('movies'))
+        
+        return render_template('showing_seats.html', 
+                             showing=showing, 
+                             seats=seats)
+    
+    except Exception as e:
+        flash('Server unavailable, please try again later.', 'error')
+        print(f"Showing seats error: {e}")
+        return redirect(url_for('movies'))
+
+@app.route('/booking/spectators', methods=['POST'])
+def booking_spectators():
+    """Handle spectator information entry"""
+    try:
+        # Get data from the form
+        showing_id = request.form.get('showing_id')
+        selected_seats = request.form.getlist('selected_seats')
+        
+        if not showing_id or not selected_seats:
+            flash('Invalid booking data.', 'error')
+            return redirect(url_for('movies'))
+        
+        # Convert seat IDs to integers
+        try:
+            selected_seats = [int(seat_id) for seat_id in selected_seats]
+        except ValueError:
+            flash('Invalid seat selection.', 'error')
+            return redirect(url_for('movies'))
+        
+        # Verify seats are still available
+        if not check_seats_availability(selected_seats, showing_id):
+            flash('Some selected seats are no longer available.', 'error')
+            return redirect(url_for('showing_seats', showing_id=showing_id))
+        
+        # Get showing info
+        showing = get_showing_by_id(showing_id)
+        
+        if not showing:
+            flash('Booking information unavailable.', 'error')
+            return redirect(url_for('movies'))
+        
+        # Get seat details for the selected seats
+        all_seats = get_seats_for_showing(showing_id)
+        selected_seat_details = [seat for seat in all_seats if seat['id'] in selected_seats]
+        
+        return render_template('booking_spectators.html',
+                             showing=showing,
+                             selected_seats=selected_seat_details,
+                             num_spectators=len(selected_seats))
+    
+    except Exception as e:
+        flash('Server unavailable, please try again later.', 'error')
+        print(f"Booking spectators error: {e}")
+        return redirect(url_for('movies'))
+
+@app.route('/booking/confirm', methods=['POST'])
+def booking_confirm():
+    """Process the complete booking"""
+    try:
+        # Get form data
+        showing_id = request.form.get('showing_id')
+        selected_seats = request.form.getlist('selected_seats')
+        
+        # Booker information
+        booker_email = request.form.get('booker_email')
+        booker_first_name = request.form.get('booker_first_name')
+        booker_last_name = request.form.get('booker_last_name')
+        
+        # Spectator information
+        num_spectators = len(selected_seats) if selected_seats else 0
+        spectators = []
+        
+        for i in range(num_spectators):
+            # Calculate age from birth date
+            birth_date_str = request.form.get(f'spectator_{i}_birth_date')
+            if birth_date_str:
+                from datetime import date
+                birth_date = date.fromisoformat(birth_date_str)
+                today = date.today()
+                age = today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
+            else:
+                age = 0
+            
+            spectator = {
+                'firstname': request.form.get(f'spectator_{i}_first_name'),
+                'lastname': request.form.get(f'spectator_{i}_last_name'),
+                'age': age,
+                'pmr': 1 if request.form.get(f'spectator_{i}_pmr') == 'on' else 0
+            }
+            spectators.append(spectator)
+        
+        # Validate required fields
+        if not all([showing_id, booker_email, booker_first_name, booker_last_name]):
+            flash('Please fill in all required booker information.', 'error')
+            return redirect(url_for('movies'))
+        
+        for i, spectator in enumerate(spectators):
+            if not all([spectator['firstname'], spectator['lastname']]):
+                flash(f'Please fill in all information for spectator {i+1}.', 'error')
+                return redirect(url_for('movies'))
+        
+        # Convert seat IDs to integers
+        try:
+            selected_seats = [int(seat_id) for seat_id in selected_seats]
+        except ValueError:
+            flash('Invalid booking data.', 'error')
+            return redirect(url_for('movies'))
+        
+        # Create the booking - use logged-in user's account_id if available
+        from flask import g
+        
+        # Check if user is logged in and get their account_id
+        if hasattr(g, 'current_user') and g.current_user:
+            account_id = g.current_user['id']
+        else:
+            # For anonymous bookings, we'll use None and let the database function handle it
+            account_id = None
+            
+        booker_info = {
+            'account_id': account_id
+        }
+        
+        booking_id = create_complete_booking(showing_id, booker_info, spectators, selected_seats)
+        
+        if booking_id:
+            flash('Booking confirmed successfully!', 'success')
+            return redirect(url_for('booking_tickets', booking_id=booking_id))
+        else:
+            flash('Booking failed. The selected seats may no longer be available.', 'error')
+            return redirect(url_for('showing_seats', showing_id=showing_id))
+    
+    except Exception as e:
+        flash('Server unavailable, please try again later.', 'error')
+        print(f"Booking confirm error: {e}")
+        return redirect(url_for('movies'))
+
+@app.route('/booking/<int:booking_id>/tickets')
+def booking_tickets(booking_id):
+    """Display booking confirmation and tickets"""
+    try:
+        # Get booking details
+        booking = get_booking_by_id(booking_id)
+        if not booking:
+            flash('Booking not found.', 'error')
+            return redirect(url_for('movies'))
+        
+        # Get customers/spectators for this booking
+        customers = get_customers_for_booking(booking_id)
+        
+        return render_template('booking_tickets.html', 
+                             booking=booking, 
+                             customers=customers)
+    
+    except Exception as e:
+        flash('Server unavailable, please try again later.', 'error')
+        print(f"Booking tickets error: {e}")
+        return redirect(url_for('movies'))
+
+@app.route('/my-tickets')
+@login_required
+def my_tickets():
+    """Display user's booking history"""
+    try:
+        from flask import g
+        
+        # Get user ID from g.current_user (set by middleware)
+        if not hasattr(g, 'current_user') or not g.current_user:
+            flash('Session error. Please log in again.', 'error')
+            return redirect(url_for('login'))
+        
+        user_id = g.current_user['id']
+        
+        # Get all bookings for this user
+        bookings = get_bookings_by_account_id(user_id)
+        
+        # Add today's date for comparison in template
+        from datetime import date
+        today = date.today()
+        
+        # Ensure all booking dates are date objects for proper comparison
+        for booking in bookings:
+            if hasattr(booking['date'], 'date'):
+                # If it's a datetime object, extract the date part
+                booking['date'] = booking['date'].date()
+        
+        return render_template('my_tickets.html', bookings=bookings, today=today)
+    
+    except Exception as e:
+        flash('Server unavailable, please try again later.', 'error')
+        print(f"My tickets error: {e}")
         return redirect(url_for('index'))
 
 # Helper function to check if a URL is an authentication page

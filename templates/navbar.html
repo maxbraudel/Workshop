@@ -18,7 +18,7 @@
   <div class="ms-auto d-flex align-items-center gap-3">
     {% if is_logged_in %}
       <!-- User is logged in -->
-      <button class="btn btn-primary me-3">My Tickets</button>
+      <a class="btn btn-primary me-3" href="{{ url_for('my_tickets') }}">My Tickets</a>
       
       <!-- User Profile Dropdown -->
       <div class="dropdown position-static">
@@ -40,7 +40,7 @@
       <!-- User is not logged in -->
       <a class="nav-link" href="{{ url_for('signup') }}">Sign Up</a>
       <a class="nav-link" href="{{ url_for('login') }}">Log In</a>
-      <button class="btn btn-primary">My Tickets</button>
+      <a class="btn btn-primary" href="{{ url_for('login') }}" title="Login to view your tickets">My Tickets</a>
     {% endif %}
   </div>
 </nav>

@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+
+{% block title %}Booking Confirmation - Cinemacousas{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <!-- Booking Progress -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="progress-container">
+        <div class="progress-step completed">
+          <div class="step-circle">1</div>
+          <div class="step-label">Select Seats</div>
+        </div>
+        <div class="progress-line"></div>
+        <div class="progress-step completed">
+          <div class="step-circle">2</div>
+          <div class="step-label">Spectator Info</div>
+        </div>
+        <div class="progress-line"></div>
+        <div class="progress-step completed">
+          <div class="step-circle">3</div>
+          <div class="step-label">Confirmation</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success Message -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="alert alert-success text-center">
+        <i class="fas fa-check-circle fa-3x mb-3"></i>
+        <h3>Booking Confirmed!</h3>
+        <p class="mb-0">Your tickets have been successfully reserved. Booking ID: <strong>#{{ booking.id }}</strong></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Movie and Showing Information -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">
+            <i class="fas fa-film me-2"></i>
+            Movie Details
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6">
+              <h4 class="text-primary">{{ booking.movie_name }}</h4>
+              <div class="movie-details">
+                <p class="mb-2">
+                  <i class="fas fa-clock me-2"></i>
+                  <strong>Duration:</strong> {{ booking.duration }} minutes
+                </p>
+                <p class="mb-2">
+                  <i class="fas fa-door-open me-2"></i>
+                  <strong>Room:</strong> {{ booking.room_name }}
+                </p>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="showing-details">
+                <p class="mb-2">
+                  <i class="fas fa-calendar me-2"></i>
+                  <strong>Date:</strong> {{ booking.date.strftime('%A, %B %d, %Y') }}
+                </p>
+                <p class="mb-2">
+                  <i class="fas fa-clock me-2"></i>
+                  <strong>Time:</strong> {{ booking.starttime|seconds_to_time }}
+                </p>
+                <p class="mb-2">
+                  <i class="fas fa-euro-sign me-2"></i>
+                  <strong>Total Price:</strong> €{{ "%.2f"|format(booking.price) }}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Spectator Information -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header bg-info text-white">
+          <h5 class="mb-0">
+            <i class="fas fa-users me-2"></i>
+            Spectator Information
+          </h5>
+        </div>
+        <div class="card-body">
+          {% if customers %}
+            <div class="table-responsive">
+              <table class="table table-striped">
+                <thead>
+                  <tr>
+                    <th>Seat</th>
+                    <th>Name</th>
+                    <th>Age</th>
+                    <th>Special Needs</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for customer in customers %}
+                    <tr>
+                      <td>
+                        <span class="badge bg-primary">
+                          {{ customer.seat_row }}{{ customer.seat_column }}
+                        </span>
+                      </td>
+                      <td>{{ customer.firstname }} {{ customer.lastname }}</td>
+                      <td>{{ customer.age }} years</td>
+                      <td>
+                        {% if customer.pmr %}
+                          <span class="badge bg-warning">PMR</span>
+                        {% else %}
+                          <span class="text-muted">None</span>
+                        {% endif %}
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <p class="text-muted">No spectator information available.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Instructions -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header bg-warning text-dark">
+          <h5 class="mb-0">
+            <i class="fas fa-info-circle me-2"></i>
+            Important Information
+          </h5>
+        </div>
+        <div class="card-body">
+          <ul class="mb-0">
+            <li>Please arrive at the cinema at least 15 minutes before showtime.</li>
+            <li>Present this booking confirmation at the entrance.</li>
+            <li>Keep your booking ID (#{{ booking.id }}) for reference.</li>
+            <li>Seats are reserved and cannot be changed after booking.</li>
+            <li>For any issues, contact cinema support with your booking ID.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="row mb-4">
+    <div class="col-12 text-center">
+      <button onclick="window.print()" class="btn btn-primary me-3">
+        <i class="fas fa-print me-2"></i>
+        Print Tickets
+      </button>
+      <a href="{{ url_for('movies') }}" class="btn btn-outline-secondary">
+        <i class="fas fa-film me-2"></i>
+        Book More Movies
+      </a>
+    </div>
+  </div>
+</div>
+
+<style>
+.progress-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+.progress-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.step-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #e9ecef;
+  color: #6c757d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  margin-bottom: 8px;
+  border: 2px solid #e9ecef;
+  transition: all 0.3s ease;
+}
+
+.step-label {
+  font-size: 12px;
+  color: #6c757d;
+  text-align: center;
+}
+
+.progress-step.completed .step-circle {
+  background-color: #28a745;
+  border-color: #28a745;
+  color: white;
+}
+
+.progress-step.completed .step-label {
+  color: #28a745;
+}
+
+.progress-line {
+  width: 100px;
+  height: 2px;
+  background-color: #28a745;
+  margin: 0 20px;
+  margin-top: -28px;
+}
+
+@media print {
+  .btn, .progress-container {
+    display: none !important;
+  }
+  
+  .container {
+    max-width: 100% !important;
+  }
+  
+  .card {
+    border: 2px solid #000 !important;
+    margin-bottom: 20px !important;
+  }
+  
+  .card-header {
+    background-color: #f8f9fa !important;
+    color: #000 !important;
+    border-bottom: 1px solid #000 !important;
+  }
+}
+</style>
+{% endblock %}

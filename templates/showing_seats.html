@@ -1,0 +1,333 @@
+{% extends "base.html" %}
+
+{% block title %}Select Seats - {{ showing.movie_name }} - Cinemacousas{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <!-- Movie and Showing Info -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <h3 class="card-title mb-2">
+                <i class="fas fa-film me-2 text-primary"></i>
+                {{ showing.movie_name }}
+              </h3>
+              <div class="d-flex flex-wrap gap-3 text-muted">
+                <span>
+                  <i class="fas fa-calendar me-1"></i>
+                  {{ showing.date.strftime('%A, %B %d, %Y') }}
+                </span>
+                <span>
+                  <i class="fas fa-clock me-1"></i>
+                  {{ showing.starttime|seconds_to_time }}
+                </span>
+                <span>
+                  <i class="fas fa-door-open me-1"></i>
+                  {{ showing.room_name }}
+                </span>
+                <span>
+                  <i class="fas fa-stopwatch me-1"></i>
+                  {{ showing.duration }} min
+                </span>
+              </div>
+            </div>
+            <div class="col-md-4 text-md-end">
+              <div class="badge bg-secondary fs-6 px-3 py-2">
+                Base Price: €{{ "%.2f"|format(showing.baseprice) }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Seat Selection -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">
+            <i class="fas fa-couch me-2"></i>
+            Select Your Seats
+          </h5>
+        </div>
+        <div class="card-body">
+          <!-- Legend -->
+          <div class="row mb-4">
+            <div class="col-12">
+              <div class="d-flex flex-wrap justify-content-center gap-4 mb-3">
+                <div class="d-flex align-items-center">
+                  <div class="seat-legend available me-2"></div>
+                  <span class="small">Available</span>
+                </div>
+                <div class="d-flex align-items-center">
+                  <div class="seat-legend selected me-2"></div>
+                  <span class="small">Selected</span>
+                </div>
+                <div class="d-flex align-items-center">
+                  <div class="seat-legend occupied me-2"></div>
+                  <span class="small">Occupied</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Screen -->
+          <div class="screen-container mb-4">
+            <div class="screen">
+              <i class="fas fa-tv me-2"></i>
+              SCREEN
+            </div>
+          </div>
+
+          <!-- Seat Grid -->
+          <div class="seat-grid-container">
+            <div class="seat-grid" id="seatGrid">
+              {% set ns = namespace(current_row=None) %}
+              {% for seat in seats %}
+                {% if ns.current_row != seat.seat_row %}
+                  {% if ns.current_row is not none %}
+                    </div> <!-- Close previous row -->
+                  {% endif %}
+                  {% set ns.current_row = seat.seat_row %}
+                  <div class="seat-row" data-row="{{ seat.seat_row }}">
+                    <div class="row-label">{{ seat.seat_row }}</div>
+                {% endif %}
+                
+                <div class="seat {{ 'occupied' if seat.is_occupied else 'available' }}" 
+                     data-seat-id="{{ seat.id }}"
+                     data-row="{{ seat.seat_row }}"
+                     data-column="{{ seat.seat_column }}"
+                     data-type="{{ seat.type }}"
+                     {% if not seat.is_occupied %}onclick="toggleSeat(this)"{% endif %}>
+                  {{ seat.seat_column }}
+                </div>
+                
+                {% if loop.last %}
+                  </div> <!-- Close last row -->
+                {% endif %}
+              {% endfor %}
+            </div>
+          </div>
+
+          <!-- Selected Seats Summary -->
+          <div class="selected-seats-summary mt-4" id="selectedSummary" style="display: none;">
+            <div class="alert alert-info">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <h6 class="mb-1">Selected Seats:</h6>
+                  <div id="selectedSeatsList" class="small"></div>
+                </div>
+                <div class="text-end">
+                  <div class="fw-bold">Total: <span id="selectedCount">0</span> seat(s)</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Continue Button -->
+          <div class="text-center mt-4">
+            <form method="POST" action="{{ url_for('booking_spectators') }}" id="bookingForm">
+              <input type="hidden" name="showing_id" value="{{ showing.id }}">
+              <div id="selectedSeatsInputs"></div>
+              
+              <button type="submit" class="btn btn-primary btn-lg" id="continueBtn" disabled>
+                <i class="fas fa-arrow-right me-2"></i>
+                Continue to Spectator Information
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.seat-grid-container {
+  overflow-x: auto;
+  padding: 20px 0;
+}
+
+.seat-grid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-width: fit-content;
+}
+
+.seat-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.row-label {
+  width: 30px;
+  text-align: center;
+  font-weight: bold;
+  color: #6c757d;
+  font-size: 14px;
+}
+
+.seat {
+  width: 35px;
+  height: 35px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.seat.available {
+  background-color: #e9ecef;
+  color: #495057;
+  border-color: #ced4da;
+}
+
+.seat.available:hover {
+  background-color: #007bff;
+  color: white;
+  border-color: #0056b3;
+  transform: scale(1.1);
+}
+
+.seat.selected {
+  background-color: #007bff;
+  color: white;
+  border-color: #0056b3;
+  transform: scale(1.1);
+}
+
+.seat.occupied {
+  background-color: #dc3545;
+  color: white;
+  border-color: #c82333;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.seat-legend {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  border: 2px solid transparent;
+}
+
+.seat-legend.available {
+  background-color: #e9ecef;
+  border-color: #ced4da;
+}
+
+.seat-legend.selected {
+  background-color: #007bff;
+  border-color: #0056b3;
+}
+
+.seat-legend.occupied {
+  background-color: #dc3545;
+  border-color: #c82333;
+}
+
+.screen-container {
+  text-align: center;
+}
+
+.screen {
+  display: inline-block;
+  background: linear-gradient(135deg, #6c757d, #495057);
+  color: white;
+  padding: 12px 40px;
+  border-radius: 20px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+#continueBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+</style>
+
+<script>
+let selectedSeats = [];
+
+function toggleSeat(seatElement) {
+  if (seatElement.classList.contains('occupied')) {
+    return; // Can't select occupied seats
+  }
+  
+  const seatId = seatElement.getAttribute('data-seat-id');
+  const seatRow = seatElement.getAttribute('data-row');
+  const seatColumn = seatElement.getAttribute('data-column');
+  
+  if (seatElement.classList.contains('selected')) {
+    // Deselect seat
+    seatElement.classList.remove('selected');
+    seatElement.classList.add('available');
+    selectedSeats = selectedSeats.filter(seat => seat.id !== seatId);
+  } else {
+    // Select seat
+    seatElement.classList.remove('available');
+    seatElement.classList.add('selected');
+    selectedSeats.push({
+      id: seatId,
+      row: seatRow,
+      column: seatColumn,
+      label: `${seatRow}${seatColumn}`
+    });
+  }
+  
+  updateSelectedSummary();
+}
+
+function updateSelectedSummary() {
+  const summaryDiv = document.getElementById('selectedSummary');
+  const countSpan = document.getElementById('selectedCount');
+  const listDiv = document.getElementById('selectedSeatsList');
+  const continueBtn = document.getElementById('continueBtn');
+  const seatsInputsDiv = document.getElementById('selectedSeatsInputs');
+  
+  if (selectedSeats.length === 0) {
+    summaryDiv.style.display = 'none';
+    continueBtn.disabled = true;
+    seatsInputsDiv.innerHTML = '';
+  } else {
+    summaryDiv.style.display = 'block';
+    continueBtn.disabled = false;
+    
+    countSpan.textContent = selectedSeats.length;
+    
+    // Sort seats by row and column for display
+    const sortedSeats = [...selectedSeats].sort((a, b) => {
+      if (a.row !== b.row) return a.row.localeCompare(b.row);
+      return parseInt(a.column) - parseInt(b.column);
+    });
+    
+    listDiv.textContent = sortedSeats.map(seat => seat.label).join(', ');
+    
+    // Create hidden inputs for form submission
+    seatsInputsDiv.innerHTML = selectedSeats.map(seat => 
+      `<input type="hidden" name="selected_seats" value="${seat.id}">`
+    ).join('');
+  }
+}
+
+// Initialize the page
+document.addEventListener('DOMContentLoaded', function() {
+  updateSelectedSummary();
+});
+</script>
+{% endblock %}

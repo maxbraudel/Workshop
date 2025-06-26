@@ -1,0 +1,299 @@
+{% extends "base.html" %}
+
+{% block title %}Booking Confirmed - {{ booking.movie_name }} - Cinemacousas{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <!-- Success Message -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="alert alert-success text-center">
+        <div class="mb-3">
+          <i class="fas fa-check-circle fa-3x text-success"></i>
+        </div>
+        <h3 class="mb-2">Booking Confirmed!</h3>
+        <p class="mb-0">Your tickets have been successfully booked.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Booking Progress -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="progress-container">
+        <div class="progress-step completed">
+          <div class="step-circle">1</div>
+          <div class="step-label">Select Seats</div>
+        </div>
+        <div class="progress-line completed-line"></div>
+        <div class="progress-step completed">
+          <div class="step-circle">2</div>
+          <div class="step-label">Spectator Info</div>
+        </div>
+        <div class="progress-line completed-line"></div>
+        <div class="progress-step completed">
+          <div class="step-circle">
+            <i class="fas fa-check"></i>
+          </div>
+          <div class="step-label">Confirmed</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Booking Summary -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card border-success">
+        <div class="card-header bg-success text-white">
+          <h5 class="mb-0">
+            <i class="fas fa-ticket-alt me-2"></i>
+            Booking Details
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6">
+              <h6 class="text-muted mb-2">Movie Information</h6>
+              <div class="mb-2">
+                <strong>Movie:</strong> {{ booking.movie_name }}
+              </div>
+              <div class="mb-2">
+                <strong>Date:</strong> 
+                {{ booking.date.strftime('%A, %B %d, %Y') }}
+              </div>
+              <div class="mb-2">
+                <strong>Time:</strong> 
+                {{ (booking.starttime|int / 3600)|int }}:{{ '%02d'|format(((booking.starttime|int % 3600) / 60)|int) }}
+              </div>
+              <div class="mb-2">
+                <strong>Room:</strong> {{ booking.room_name }}
+              </div>
+            </div>
+            <div class="col-md-6">
+              <h6 class="text-muted mb-2">Booking Information</h6>
+              <div class="mb-2">
+                <strong>Booking ID:</strong> 
+                <span class="badge bg-primary">#{{ booking.id }}</span>
+              </div>
+              <div class="mb-2">
+                <strong>Total Price:</strong> 
+                <span class="fw-bold text-success">€{{ "%.2f"|format(booking.price) }}</span>
+              </div>
+              <div class="mb-2">
+                <strong>Number of Tickets:</strong> {{ customers|length }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tickets -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <h4 class="mb-3">
+        <i class="fas fa-tickets-alt me-2"></i>
+        Your Tickets
+      </h4>
+      
+      {% for customer in customers %}
+        <div class="card ticket-card mb-3">
+          <div class="card-body">
+            <div class="row align-items-center">
+              <div class="col-md-8">
+                <div class="ticket-info">
+                  <h5 class="ticket-movie">{{ booking.movie_name }}</h5>
+                  <div class="ticket-details">
+                    <div class="row">
+                      <div class="col-6">
+                        <small class="text-muted">Spectator</small><br>
+                        <strong>{{ customer.firstname }} {{ customer.lastname }}</strong>
+                      </div>
+                      <div class="col-6">
+                        <small class="text-muted">Age</small><br>
+                        <strong>{{ customer.age }} years old</strong>
+                        {% if customer.pmr %}
+                          <span class="badge bg-info ms-2">PMR</span>
+                        {% endif %}
+                      </div>
+                    </div>
+                    <div class="row mt-2">
+                      <div class="col-4">
+                        <small class="text-muted">Date</small><br>
+                        <strong>{{ booking.date.strftime('%m/%d/%Y') }}</strong>
+                      </div>
+                      <div class="col-4">
+                        <small class="text-muted">Time</small><br>
+                        <strong>{{ (booking.starttime|int / 3600)|int }}:{{ '%02d'|format(((booking.starttime|int % 3600) / 60)|int) }}</strong>
+                      </div>
+                      <div class="col-4">
+                        <small class="text-muted">Seat</small><br>
+                        <strong>{{ customer.seat_row }}{{ customer.seat_column }}</strong>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-4 text-md-end">
+                <div class="ticket-seat">
+                  <div class="seat-visual">
+                    {{ customer.seat_row }}{{ customer.seat_column }}
+                  </div>
+                  <div class="room-info">
+                    <small class="text-muted">{{ booking.room_name }}</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="ticket-footer">
+              <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+                <div>
+                  <small class="text-muted">Booking ID: <strong>#{{ booking.id }}</strong></small>
+                </div>
+                <div>
+                  <small class="text-muted">Cinema Cousas</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="row mb-4">
+    <div class="col-12 text-center">
+      <a href="{{ url_for('movies') }}" class="btn btn-primary btn-lg me-3">
+        <i class="fas fa-film me-2"></i>
+        Book More Tickets
+      </a>
+      <button onclick="window.print()" class="btn btn-outline-secondary btn-lg">
+        <i class="fas fa-print me-2"></i>
+        Print Tickets
+      </button>
+    </div>
+  </div>
+</div>
+
+<style>
+.progress-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+.progress-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.step-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #e9ecef;
+  color: #6c757d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  margin-bottom: 8px;
+  border: 2px solid #e9ecef;
+  transition: all 0.3s ease;
+}
+
+.step-label {
+  font-size: 12px;
+  color: #6c757d;
+  text-align: center;
+}
+
+.progress-step.completed .step-circle {
+  background-color: #28a745;
+  border-color: #28a745;
+  color: white;
+}
+
+.progress-step.completed .step-label {
+  color: #28a745;
+}
+
+.progress-line {
+  width: 100px;
+  height: 2px;
+  background-color: #e9ecef;
+  margin: 0 20px;
+  margin-top: -28px;
+}
+
+.progress-line.completed-line {
+  background-color: #28a745;
+}
+
+.ticket-card {
+  border: 2px dashed #28a745;
+  background: linear-gradient(45deg, #f8f9fa 0%, #ffffff 100%);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  transition: transform 0.2s ease;
+}
+
+.ticket-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
+.ticket-movie {
+  color: #28a745;
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+
+.ticket-details {
+  font-size: 14px;
+}
+
+.seat-visual {
+  background-color: #007bff;
+  color: white;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 18px;
+  text-align: center;
+  margin-bottom: 5px;
+  min-width: 60px;
+}
+
+.room-info {
+  text-align: center;
+}
+
+.ticket-footer {
+  border-top: 1px dashed #dee2e6;
+  background-color: rgba(40, 167, 69, 0.05);
+  margin: 15px -20px -20px -20px;
+  padding: 15px 20px 5px 20px;
+}
+
+@media print {
+  .btn, .progress-container {
+    display: none !important;
+  }
+  
+  .ticket-card {
+    page-break-inside: avoid;
+    margin-bottom: 20px;
+  }
+  
+  .container {
+    max-width: none;
+  }
+}
+</style>
+{% endblock %}

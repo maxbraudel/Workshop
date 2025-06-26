@@ -28,7 +28,13 @@ from .database_retrieve import (
     get_user_sessions,
     get_all_movies,
     get_movies_with_showings,
-    get_movies_with_showings_by_date
+    get_movies_with_showings_by_date,
+    get_showing_by_id,
+    get_seats_for_showing,
+    get_age_pricing,
+    get_booking_by_id,
+    get_customers_for_booking,
+    get_bookings_by_account_id
 )
 
 # Import validation functions
@@ -48,7 +54,9 @@ from .database_modify import (
     cleanup_expired_sessions,
     add_account,
     modify_account_profile,
-    modify_account_password
+    modify_account_password,
+    check_seats_availability,
+    create_complete_booking
 )
 
 __all__ = [
@@ -67,6 +75,17 @@ __all__ = [
     'validate_session_token',
     'get_user_sessions',
     'get_all_movies',
+    'get_movies_with_showings',
+    'get_movies_with_showings_by_date',
+    'get_showing_by_id',
+    'get_seats_for_showing',
+    'get_age_pricing',
+    'get_booking_by_id',
+    'get_customers_for_booking',
+    'get_bookings_by_account_id',
+    'get_age_pricing',
+    'get_booking_by_id',
+    'get_customers_for_booking',
     
     # Validation functions
     'validate_signup_identifiers',
@@ -82,5 +101,7 @@ __all__ = [
     'cleanup_expired_sessions',
     'add_account',
     'modify_account_profile',
-    'modify_account_password'
+    'modify_account_password',
+    'check_seats_availability',
+    'create_complete_booking'
 ]

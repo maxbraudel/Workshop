@@ -58,8 +58,7 @@ class Config:
         return {
             'pool_name': 'cinema_pool',
             'pool_size': cls.DB_POOL_SIZE,
-            'pool_reset_session': True,
-            'max_overflow': cls.DB_MAX_OVERFLOW
+            'pool_reset_session': True
         }
 
 class DevelopmentConfig(Config):

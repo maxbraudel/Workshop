@@ -159,3 +159,151 @@ def get_movies_with_showings_by_date(target_date):
             return movies
         finally:
             cursor.close()
+
+@handle_db_errors(default_return=None)
+def get_showing_by_id(showing_id):
+    """Get showing details by ID with movie and room information"""
+    with get_db_connection() as conn:
+        cursor = conn.cursor(dictionary=True)
+        
+        try:
+            cursor.execute("""
+                SELECT s.*, m.name as movie_name, m.duration, m.director, m.cast, m.synopsis,
+                       r.name as room_name, r.nb_rows, r.nb_columns
+                FROM showing s
+                JOIN movie m ON s.movie_id = m.id
+                JOIN room r ON s.room_id = r.id
+                WHERE s.id = %s
+            """, (showing_id,))
+            
+            showing = cursor.fetchone()
+            
+            if showing and hasattr(showing['starttime'], 'total_seconds'):
+                showing['starttime'] = showing['starttime'].total_seconds()
+                
+            return showing
+        finally:
+            cursor.close()
+
+@handle_db_errors(default_return=[])
+def get_seats_for_showing(showing_id):
+    """Get all seats for a showing with their reservation status"""
+    with get_db_connection() as conn:
+        cursor = conn.cursor(dictionary=True)
+        
+        try:
+            # First get the room_id from the showing
+            cursor.execute("SELECT room_id FROM showing WHERE id = %s", (showing_id,))
+            showing = cursor.fetchone()
+            
+            if not showing:
+                return []
+            
+            room_id = showing['room_id']
+            
+            # Get all seats for this room with their reservation status
+            cursor.execute("""
+                SELECT s.id, s.type, s.seat_row, s.seat_column,
+                       CASE WHEN sr.seat_id IS NOT NULL THEN 1 ELSE 0 END as is_occupied
+                FROM seat s
+                LEFT JOIN seatreservation sr ON s.id = sr.seat_id AND sr.showing_id = %s
+                WHERE s.room_id = %s
+                ORDER BY s.seat_row, s.seat_column
+            """, (showing_id, room_id))
+            
+            return cursor.fetchall()
+        finally:
+            cursor.close()
+
+@handle_db_errors(default_return=[])
+def get_age_pricing():
+    """Get all age-based pricing rules"""
+    with get_db_connection() as conn:
+        cursor = conn.cursor(dictionary=True)
+        
+        try:
+            cursor.execute("SELECT * FROM ageprice ORDER BY agemin")
+            return cursor.fetchall()
+        finally:
+            cursor.close()
+
+@handle_db_errors(default_return=None)
+def get_booking_by_id(booking_id):
+    """Get booking details with showing and movie information"""
+    with get_db_connection() as conn:
+        cursor = conn.cursor(dictionary=True)
+        
+        try:
+            cursor.execute("""
+                SELECT b.*, s.date, s.starttime, s.baseprice,
+                       m.name as movie_name, m.duration,
+                       r.name as room_name
+                FROM booking b
+                JOIN showing s ON b.showing_id = s.id
+                JOIN movie m ON s.movie_id = m.id
+                JOIN room r ON s.room_id = r.id
+                WHERE b.id = %s
+            """, (booking_id,))
+            
+            booking = cursor.fetchone()
+            
+            if booking and hasattr(booking['starttime'], 'total_seconds'):
+                booking['starttime'] = booking['starttime'].total_seconds()
+                
+            return booking
+        finally:
+            cursor.close()
+
+@handle_db_errors(default_return=[])
+def get_customers_for_booking(booking_id):
+    """Get all customers/spectators for a booking with their seat information"""
+    with get_db_connection() as conn:
+        cursor = conn.cursor(dictionary=True)
+        
+        try:
+            cursor.execute("""
+                SELECT c.*, s.seat_row, s.seat_column, s.type as seat_type
+                FROM customer c
+                JOIN seatreservation sr ON c.id = sr.customer_id
+                JOIN seat s ON sr.seat_id = s.id
+                WHERE c.booking_id = %s
+                ORDER BY s.seat_row, s.seat_column
+            """, (booking_id,))
+            
+            return cursor.fetchall()
+        finally:
+            cursor.close()
+
+@handle_db_errors(default_return=[])
+def get_bookings_by_account_id(account_id):
+    """Get all bookings for a specific account with movie and showing information"""
+    with get_db_connection() as conn:
+        cursor = conn.cursor(dictionary=True)
+        
+        try:
+            cursor.execute("""
+                SELECT b.id, b.price, b.account_id, b.showing_id,
+                       s.date, s.starttime, s.baseprice,
+                       m.name as movie_name, m.duration,
+                       r.name as room_name,
+                       COUNT(c.id) as num_spectators
+                FROM booking b
+                JOIN showing s ON b.showing_id = s.id
+                JOIN movie m ON s.movie_id = m.id
+                JOIN room r ON s.room_id = r.id
+                LEFT JOIN customer c ON b.id = c.booking_id
+                WHERE b.account_id = %s
+                GROUP BY b.id, b.price, b.account_id, b.showing_id, s.date, s.starttime, s.baseprice, m.name, m.duration, r.name
+                ORDER BY s.date DESC, s.starttime DESC
+            """, (account_id,))
+            
+            bookings = cursor.fetchall()
+            
+            # Convert timedelta objects to total seconds for display
+            for booking in bookings:
+                if hasattr(booking['starttime'], 'total_seconds'):
+                    booking['starttime'] = booking['starttime'].total_seconds()
+                    
+            return bookings
+        finally:
+            cursor.close()

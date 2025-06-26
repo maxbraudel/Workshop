@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+
+{% block title %}My Tickets - Cinemacousas{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <!-- Page Header -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="d-flex align-items-center justify-content-between">
+        <h2 class="mb-0">
+          <i class="fas fa-ticket-alt me-2 text-primary"></i>
+          My Tickets
+        </h2>
+        <a href="{{ url_for('movies') }}" class="btn btn-primary">
+          <i class="fas fa-plus me-2"></i>
+          Book New Movie
+        </a>
+      </div>
+      <p class="text-muted mb-0">View and manage your movie ticket bookings</p>
+    </div>
+  </div>
+
+  {% if bookings %}
+    <!-- Bookings List -->
+    <div class="row">
+      {% for booking in bookings %}
+        <div class="col-12 mb-4">
+          <div class="card booking-card">
+            <div class="card-body">
+              <div class="row align-items-center">
+                <!-- Movie Information -->
+                <div class="col-md-4">
+                  <h5 class="card-title text-primary mb-2">
+                    <i class="fas fa-film me-2"></i>
+                    {{ booking.movie_name }}
+                  </h5>
+                  <div class="text-muted small">
+                    <div class="mb-1">
+                      <i class="fas fa-door-open me-1"></i>
+                      {{ booking.room_name }}
+                    </div>
+                    <div class="mb-1">
+                      <i class="fas fa-clock me-1"></i>
+                      {{ booking.duration }} minutes
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Showing Details -->
+                <div class="col-md-4">
+                  <div class="showing-info">
+                    <div class="mb-2">
+                      <strong>
+                        <i class="fas fa-calendar me-2 text-primary"></i>
+                        {{ booking.date.strftime('%A, %B %d, %Y') }}
+                      </strong>
+                    </div>
+                    <div class="mb-2">
+                      <i class="fas fa-clock me-2"></i>
+                      {{ (booking.starttime|int / 3600)|int }}:{{ '%02d'|format(((booking.starttime|int % 3600) / 60)|int) }}
+                    </div>
+                    <div class="mb-1">
+                      <i class="fas fa-users me-2"></i>
+                      {{ booking.num_spectators }} 
+                      {% if booking.num_spectators == 1 %}spectator{% else %}spectators{% endif %}
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Booking Details -->
+                <div class="col-md-4 text-md-end">
+                  <div class="booking-details">
+                    <div class="booking-id mb-2">
+                      <span class="badge bg-secondary">
+                        ID: #{{ booking.id }}
+                      </span>
+                    </div>
+                    <div class="price mb-3">
+                      <h4 class="text-success mb-0">
+                        €{{ "%.2f"|format(booking.price) }}
+                      </h4>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="d-flex flex-column gap-2">
+                      <a href="{{ url_for('booking_tickets', booking_id=booking.id) }}" 
+                         class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-eye me-1"></i>
+                        View Tickets
+                      </a>
+                      
+                      <!-- Show status badge -->
+                      {% if booking.date >= today %}
+                        <span class="badge bg-success">Upcoming</span>
+                      {% else %}
+                        <span class="badge bg-secondary">Past Show</span>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="row mt-4">
+      <div class="col-12">
+        <div class="card bg-light">
+          <div class="card-body">
+            <div class="row text-center">
+              <div class="col-md-4">
+                <h3 class="text-primary">{{ bookings|length }}</h3>
+                <p class="mb-0 text-muted">Total Bookings</p>
+              </div>
+              <div class="col-md-4">
+                <h3 class="text-success">{{ bookings|sum(attribute='num_spectators') }}</h3>
+                <p class="mb-0 text-muted">Total Tickets</p>
+              </div>
+              <div class="col-md-4">
+                <h3 class="text-info">€{{ "%.2f"|format(bookings|sum(attribute='price')) }}</h3>
+                <p class="mb-0 text-muted">Total Spent</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  {% else %}
+    <!-- No Bookings State -->
+    <div class="row">
+      <div class="col-12">
+        <div class="text-center py-5">
+          <div class="empty-state">
+            <i class="fas fa-ticket-alt fa-5x text-muted mb-4"></i>
+            <h3 class="text-muted">No Tickets Yet</h3>
+            <p class="text-muted mb-4">
+              You haven't booked any movie tickets yet.<br>
+              Start by browsing our current movies and book your first show!
+            </p>
+            <a href="{{ url_for('movies') }}" class="btn btn-primary btn-lg">
+              <i class="fas fa-film me-2"></i>
+              Browse Movies
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+</div>
+
+<style>
+.booking-card {
+  border-left: 4px solid #007bff;
+  transition: all 0.3s ease;
+  border: 1px solid #e9ecef;
+}
+
+.booking-card:hover {
+  background-color: var(--bs-light);
+}
+
+.showing-info {
+  padding-left: 20px;
+  border-left: 2px solid #e9ecef;
+}
+
+.booking-details {
+  text-align: right;
+}
+
+@media (max-width: 768px) {
+  .booking-details {
+    text-align: left;
+    margin-top: 20px;
+  }
+  
+  .showing-info {
+    padding-left: 0;
+    border-left: none;
+    border-top: 2px solid #e9ecef;
+    padding-top: 15px;
+    margin-top: 15px;
+  }
+}
+
+.empty-state {
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.badge {
+  font-size: 12px;
+}
+
+.card-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.btn-sm {
+  font-size: 12px;
+  padding: 4px 8px;
+}
+</style>
+
+<script>
+// Add some interactivity for better UX
+document.addEventListener('DOMContentLoaded', function() {
+  // Add click handlers for booking cards
+  const bookingCards = document.querySelectorAll('.booking-card');
+  
+  bookingCards.forEach(card => {
+    card.addEventListener('click', function(e) {
+      // Don't trigger if clicking on a button or link
+      if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON' || e.target.closest('a') || e.target.closest('button')) {
+        return;
+      }
+      
+      // Find the view tickets link and click it
+      const viewLink = card.querySelector('a[href*="booking_tickets"]');
+      if (viewLink) {
+        viewLink.click();
+      }
+    });
+
+  });
+});
+</script>
+{% endblock %}
