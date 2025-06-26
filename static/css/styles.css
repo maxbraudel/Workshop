@@ -871,6 +871,7 @@ h2 {
 .booking-page {
   background-color: #f8f9fa;
   min-height: 100vh;
+  overflow-x: hidden; /* Prevent horizontal scroll */
 }
 
 .booking-header {
@@ -883,6 +884,32 @@ h2 {
   min-height: calc(100vh - var(--navbar-height) - 10rem);
   margin-top: 2rem;
   margin-bottom: 2rem;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  max-width: 100vw; /* Ensure it doesn't exceed viewport width */
+  width: 100%; /* Take full available width */
+}
+
+/* Additional booking layout fixes */
+.booking-row > .col-lg-4,
+.booking-row > .col-lg-8 {
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  max-width: 100%;
+}
+
+/* Ensure cards don't overflow */
+.booking-row .card {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Fix any potential overflow from seat grid */
+.movie-theater {
+  max-width: 100%;
+  overflow-x: auto;
 }
 
 /* Booking progress indicator */
@@ -937,7 +964,10 @@ h2 {
    STICKY BOTTOM NAVIGATION
    ================================ */
 
-
+/* Add padding bottom to booking pages to make room for sticky buttons */
+.booking-page {
+  padding-bottom: 80px; /* Space for sticky buttons */
+}
 
 /* Sticky bottom navigation container */
 .sticky-bottom-nav {
