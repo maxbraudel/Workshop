@@ -883,7 +883,7 @@ h2 {
 .booking-row {
   min-height: calc(100vh - var(--navbar-height) - 10rem);
   margin-top: 2rem;
-  margin-bottom: 2rem;
+  margin-bottom: 3rem;
   margin-left: 0 !important;
   margin-right: 0 !important;
   padding-left: 1rem;

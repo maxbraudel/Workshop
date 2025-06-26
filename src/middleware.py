@@ -18,7 +18,9 @@ def validate_user_session():
             g.current_user = {
                 'id': session_data['account_id'],
                 'username': session_data['username'],
-                'email': session_data['email']
+                'email': session_data['email'],
+                'first_name': session_data.get('first_name'),
+                'last_name': session_data.get('last_name')
             }
             return True
         else:

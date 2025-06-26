@@ -47,7 +47,7 @@ def validate_session_token(session_token):
         
         try:
             cursor.execute("""
-                SELECT s.*, a.username, a.email 
+                SELECT s.*, a.username, a.email, a.first_name, a.last_name 
                 FROM account_session s
                 JOIN account a ON s.account_id = a.id
                 WHERE s.session_token = %s 
