@@ -129,17 +129,22 @@
 <!-- Sticky Bottom Navigation -->
 <div class="sticky-bottom-nav">
   <div class="sticky-nav-buttons">
-    <form method="POST" action="{{ url_for('booking_spectators') }}" id="bookingForm" class="w-100">
-      <input type="hidden" name="showing_id" value="{{ showing.id }}">
-      <div id="selectedSeatsInputs"></div>
-      
-      <button type="submit" class="sticky-nav-btn btn-primary" id="continueBtn" disabled>
-        <i class="fas fa-arrow-right me-2"></i>
-        Continue to Spectator Information
-      </button>
-    </form>
+    <a href="{{ url_for('movies') }}" class="sticky-nav-btn btn-outline-secondary">
+      <i class="fas fa-arrow-left me-2"></i>
+      Back to Showing Selection
+    </a>
+    <button type="submit" form="bookingForm" class="sticky-nav-btn btn-primary" id="continueBtn" disabled>
+      <i class="fas fa-arrow-right me-2"></i>
+      Continue to Spectator Information
+    </button>
   </div>
 </div>
+
+<!-- Hidden form for seat selection -->
+<form method="POST" action="{{ url_for('booking_spectators') }}" id="bookingForm" style="display: none;">
+  <input type="hidden" name="showing_id" value="{{ showing.id }}">
+  <div id="selectedSeatsInputs"></div>
+</form>
 
 <style>
 /* Seat Grid Styles */
