@@ -879,8 +879,10 @@ h2 {
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-.booking-main {
-  padding-bottom: 2rem;
+.booking-row {
+  min-height: calc(100vh - var(--navbar-height) - 4rem);
+  margin-top: 2rem;
+  margin-bottom: 2rem;
 }
 
 /* Booking progress indicator */

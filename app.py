@@ -455,10 +455,17 @@ def booking_spectators():
         all_seats = get_seats_for_showing(showing_id)
         selected_seat_details = [seat for seat in all_seats if seat['id'] in selected_seats]
         
+        # Get logged-in user information for prefilling booker details
+        from flask import g
+        current_user = None
+        if hasattr(g, 'current_user') and g.current_user:
+            current_user = g.current_user
+        
         return render_template('booking_spectators.html',
                              showing=showing,
                              selected_seats=selected_seat_details,
-                             num_spectators=len(selected_seats))
+                             num_spectators=len(selected_seats),
+                             current_user=current_user)
     
     except Exception as e:
         flash('Server unavailable, please try again later.', 'error')

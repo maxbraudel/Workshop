@@ -16,16 +16,6 @@
     
     <style>
     /* Additional booking page styles */
-    .detail-item {
-        border-left: 3px solid #e9ecef;
-        padding-left: 15px;
-        margin-left: 10px;
-    }
-    
-    .detail-item:hover {
-        border-left-color: #007bff;
-        transition: border-left-color 0.3s ease;
-    }
     
     .movie-details .detail-item:first-child {
         margin-top: 0;
@@ -75,7 +65,7 @@
     {% endwith %}
 
     <!-- Main Content -->
-    <main class="booking-main">
+    <main>
         {% block content %}{% endblock %}
     </main>
 

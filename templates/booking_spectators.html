@@ -13,42 +13,35 @@
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid mt-4">
-  <div class="row">
+  <div class="row booking-row">
     <!-- Left Column - Movie Information -->
     <div class="col-lg-4">
       <div class="card h-100">
-        <div class="card-header">
-          <h5 class="mb-0">
-            <i class="fas fa-film me-2"></i>
-            Movie Information
-          </h5>
-        </div>
         <div class="card-body">
           <h3 class="card-title mb-3 text-primary">
             {{ showing.movie_name }}
           </h3>
           
           <div class="movie-details">
-            <div class="detail-item mb-3">
+            <div class="mb-3">
               <i class="fas fa-calendar text-primary me-2"></i>
               <strong>Date:</strong>
               <div class="ms-4">{{ showing.date.strftime('%A, %B %d, %Y') }}</div>
             </div>
             
-            <div class="detail-item mb-3">
+            <div class="mb-3">
               <i class="fas fa-clock text-primary me-2"></i>
               <strong>Time:</strong>
               <div class="ms-4">{{ showing.starttime|seconds_to_time }}</div>
             </div>
             
-            <div class="detail-item mb-3">
+            <div class="mb-3">
               <i class="fas fa-door-open text-primary me-2"></i>
               <strong>Room:</strong>
               <div class="ms-4">{{ showing.room_name }}</div>
             </div>
             
-            <div class="detail-item mb-3">
+            <div class="mb-3">
               <i class="fas fa-stopwatch text-primary me-2"></i>
               <strong>Duration:</strong>
               <div class="ms-4">{{ showing.duration }} minutes</div>
@@ -76,12 +69,6 @@
     <!-- Right Column - Spectator Information -->
     <div class="col-lg-8">
       <div class="card h-100">
-        <div class="card-header">
-          <h5 class="mb-0">
-            <i class="fas fa-users me-2"></i>
-            Spectator Information
-          </h5>
-        </div>
         <div class="card-body">
           <!-- Spectator Information Form -->
           <form method="POST" action="{{ url_for('booking_confirm') }}" id="spectatorForm">
@@ -101,17 +88,23 @@
                 <div class="col-md-4 mb-3">
                   <label for="booker_first_name" class="form-label">First Name *</label>
                   <input type="text" class="form-control" id="booker_first_name" 
-                         name="booker_first_name" required>
+                         name="booker_first_name" 
+                         value="{{ current_user.first_name if current_user else '' }}" 
+                         required>
                 </div>
                 <div class="col-md-4 mb-3">
                   <label for="booker_last_name" class="form-label">Last Name *</label>
                   <input type="text" class="form-control" id="booker_last_name" 
-                         name="booker_last_name" required>
+                         name="booker_last_name" 
+                         value="{{ current_user.last_name if current_user else '' }}" 
+                         required>
                 </div>
                 <div class="col-md-4 mb-3">
                   <label for="booker_email" class="form-label">Email *</label>
                   <input type="email" class="form-control" id="booker_email" 
-                         name="booker_email" required>
+                         name="booker_email" 
+                         value="{{ current_user.email if current_user else '' }}" 
+                         required>
                 </div>
               </div>
             </div>
@@ -203,7 +196,6 @@
       </div>
     </div>
   </div>
-</div>
 
 <style>
 .progress-container {
