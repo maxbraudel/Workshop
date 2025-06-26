@@ -246,8 +246,15 @@
 let selectedSeats = [];
 const seatsData = {{ seats|tojson }};
 
+// Debug: Check if seats data is loaded
+console.log('Seats data loaded:', seatsData);
+console.log('Number of seats:', seatsData ? seatsData.length : 'No data');
+
 function toggleSeat(seatElement) {
+  console.log('toggleSeat called on:', seatElement);
+  
   if (seatElement.classList.contains('occupied') || seatElement.classList.contains('empty') || seatElement.classList.contains('stair')) {
+    console.log('Seat cannot be selected - type:', seatElement.className);
     return; // Can't select occupied seats, empty spaces, or stairs
   }
   
@@ -256,12 +263,16 @@ function toggleSeat(seatElement) {
   const seatRow = seatElement.getAttribute('data-row');
   const seatColumn = seatElement.getAttribute('data-column');
   
+  console.log('Seat details:', { seatId, seatType, seatRow, seatColumn });
+  
   if (seatElement.classList.contains('selected')) {
     // Deselect seat
+    console.log('Deselecting seat:', seatId);
     seatElement.classList.remove('selected');
     selectedSeats = selectedSeats.filter(seat => seat.id !== seatId);
   } else {
     // Select seat
+    console.log('Selecting seat:', seatId);
     seatElement.classList.add('selected');
     selectedSeats.push({
       id: seatId,
@@ -272,10 +283,13 @@ function toggleSeat(seatElement) {
     });
   }
   
+  console.log('Updated selected seats:', selectedSeats);
   updateSelectedSummary();
 }
 
 function updateSelectedSummary() {
+  console.log('updateSelectedSummary called, selected seats count:', selectedSeats.length);
+  
   const summaryDiv = document.getElementById('selectedSummary');
   const countSpan = document.getElementById('selectedCount');
   const listDiv = document.getElementById('selectedSeatsList');
@@ -308,7 +322,18 @@ function updateSelectedSummary() {
 }
 
 function generateSeatGrid() {
+  console.log('generateSeatGrid called');
   const seatsGrid = document.getElementById('seats-grid');
+  
+  if (!seatsGrid) {
+    console.error('seats-grid element not found!');
+    return;
+  }
+  
+  if (!seatsData || seatsData.length === 0) {
+    console.error('No seats data available!');
+    return;
+  }
   
   // Group seats by row
   const seatsByRow = {};
@@ -322,10 +347,15 @@ function generateSeatGrid() {
     allColumns.add(parseInt(seat.seat_column));
   });
   
+  console.log('Seats grouped by row:', seatsByRow);
+  console.log('All columns:', Array.from(allColumns));
+  
   // Get sorted rows and columns
   const rows = Object.keys(seatsByRow).sort();
   const columns = Array.from(allColumns).sort((a, b) => a - b);
   const maxColumn = Math.max(...columns);
+  
+  console.log('Generating grid for rows:', rows, 'max column:', maxColumn);
   
   // Create seat rows (without headers or labels)
   rows.forEach(rowLabel => {
@@ -351,9 +381,13 @@ function generateSeatGrid() {
         
         // Add click handler for selectable seats
         if (!seat.is_occupied && seat.type !== 'empty' && seat.type !== 'stair') {
+          console.log('Adding click handler to seat:', seat.id, 'type:', seat.type);
           seatDiv.addEventListener('click', function() {
+            console.log('Seat clicked:', this);
             toggleSeat(this);
           });
+        } else {
+          console.log('Seat not selectable:', seat.id, 'occupied:', seat.is_occupied, 'type:', seat.type);
         }
         
         seatsRow.appendChild(seatDiv);
@@ -367,10 +401,13 @@ function generateSeatGrid() {
     
     seatsGrid.appendChild(seatsRow);
   });
+  
+  console.log('Seat grid generated successfully, total rows:', rows.length);
 }
 
 // Initialize the page
 document.addEventListener('DOMContentLoaded', function() {
+  console.log('DOM Content Loaded - initializing seat selection');
   generateSeatGrid();
   updateSelectedSummary();
 });
