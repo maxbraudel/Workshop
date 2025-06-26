@@ -13,52 +13,80 @@
 {% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-  <!-- Movie and Showing Info -->
-  <div class="row mb-4">
-    <div class="col-12">
-      <div class="card">
+<div class="container-fluid mt-4">
+  <div class="row">
+    <!-- Left Column - Movie Information -->
+    <div class="col-lg-4">
+      <div class="card h-100">
+        <div class="card-header">
+          <h5 class="mb-0">
+            <i class="fas fa-film me-2"></i>
+            Movie Information
+          </h5>
+        </div>
         <div class="card-body">
-          <div class="row align-items-center">
-            <div class="col-md-8">
-              <h3 class="card-title mb-2">
-                <i class="fas fa-film me-2 text-primary"></i>
-                {{ showing.movie_name }}
-              </h3>
-              <div class="d-flex flex-wrap gap-3 text-muted">
-                <span>
-                  <i class="fas fa-calendar me-1"></i>
-                  {{ showing.date.strftime('%A, %B %d, %Y') }}
-                </span>
-                <span>
-                  <i class="fas fa-clock me-1"></i>
-                  {{ showing.starttime|seconds_to_time }}
-                </span>
-                <span>
-                  <i class="fas fa-door-open me-1"></i>
-                  {{ showing.room_name }}
-                </span>
-                <span>
-                  <i class="fas fa-stopwatch me-1"></i>
-                  {{ showing.duration }} min
-                </span>
-              </div>
+          <h3 class="card-title mb-3 text-primary">
+            {{ showing.movie_name }}
+          </h3>
+          
+          <div class="movie-details">
+            <div class="detail-item mb-3">
+              <i class="fas fa-calendar text-primary me-2"></i>
+              <strong>Date:</strong>
+              <div class="ms-4">{{ showing.date.strftime('%A, %B %d, %Y') }}</div>
             </div>
-            <div class="col-md-4 text-md-end">
-              <div class="badge bg-secondary fs-6 px-3 py-2">
-                Base Price: €{{ "%.2f"|format(showing.baseprice) }}
-              </div>
+            
+            <div class="detail-item mb-3">
+              <i class="fas fa-clock text-primary me-2"></i>
+              <strong>Time:</strong>
+              <div class="ms-4">{{ showing.starttime|seconds_to_time }}</div>
             </div>
+            
+            <div class="detail-item mb-3">
+              <i class="fas fa-door-open text-primary me-2"></i>
+              <strong>Room:</strong>
+              <div class="ms-4">{{ showing.room_name }}</div>
+            </div>
+            
+            <div class="detail-item mb-3">
+              <i class="fas fa-stopwatch text-primary me-2"></i>
+              <strong>Duration:</strong>
+              <div class="ms-4">{{ showing.duration }} minutes</div>
+            </div>
+          </div>
+
+          <!-- Selected Seats Summary -->
+          <div id="selectedSummary" style="display: none;">
+            <hr>
+            <div class="alert alert-info">
+              <h6 class="mb-2">
+                <i class="fas fa-check-circle me-2"></i>
+                Selected Seats:
+              </h6>
+              <div id="selectedSeatsList" class="mb-2"></div>
+              <div class="fw-bold">Total: <span id="selectedCount">0</span> seat(s)</div>
+            </div>
+          </div>
+
+          <!-- Continue Button -->
+          <div class="mt-4">
+            <form method="POST" action="{{ url_for('booking_spectators') }}" id="bookingForm">
+              <input type="hidden" name="showing_id" value="{{ showing.id }}">
+              <div id="selectedSeatsInputs"></div>
+              
+              <button type="submit" class="btn btn-primary btn-lg w-100" id="continueBtn" disabled>
+                <i class="fas fa-arrow-right me-2"></i>
+                Continue to Spectator Information
+              </button>
+            </form>
           </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Seat Selection -->
-  <div class="row">
-    <div class="col-12">
-      <div class="card">
+    <!-- Right Column - Seat Selection -->
+    <div class="col-lg-8">
+      <div class="card h-100">
         <div class="card-header">
           <h5 class="mb-0">
             <i class="fas fa-couch me-2"></i>
@@ -116,28 +144,13 @@
             </div>
         </div>
 
-          <!-- Selected Seats Summary -->
-          <div class="selected-seats-summary mt-4" id="selectedSummary" style="display: none;">
-            <div class="alert alert-info">
-              <div class="d-flex justify-content-between align-items-center">
-                <div>
-                  <h6 class="mb-1">Selected Seats:</h6>
-                  <div id="selectedSeatsList" class="small"></div>
-                </div>
-                <div class="text-end">
-                  <div class="fw-bold">Total: <span id="selectedCount">0</span> seat(s)</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
           <!-- Continue Button -->
           <div class="text-center mt-4">
-            <form method="POST" action="{{ url_for('booking_spectators') }}" id="bookingForm">
+            <form method="POST" action="{{ url_for('booking_spectators') }}" id="bookingForm2">
               <input type="hidden" name="showing_id" value="{{ showing.id }}">
-              <div id="selectedSeatsInputs"></div>
+              <div id="selectedSeatsInputs2"></div>
               
-              <button type="submit" class="btn btn-primary btn-lg" id="continueBtn" disabled>
+              <button type="submit" class="btn btn-primary btn-lg" id="continueBtn2" disabled>
                 <i class="fas fa-arrow-right me-2"></i>
                 Continue to Spectator Information
               </button>

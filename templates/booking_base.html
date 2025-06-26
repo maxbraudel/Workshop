@@ -14,6 +14,30 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     
+    <style>
+    /* Additional booking page styles */
+    .detail-item {
+        border-left: 3px solid #e9ecef;
+        padding-left: 15px;
+        margin-left: 10px;
+    }
+    
+    .detail-item:hover {
+        border-left-color: #007bff;
+        transition: border-left-color 0.3s ease;
+    }
+    
+    .movie-details .detail-item:first-child {
+        margin-top: 0;
+    }
+    
+    @media (max-width: 991px) {
+        .col-lg-4, .col-lg-8 {
+            margin-bottom: 2rem;
+        }
+    }
+    </style>
+    
     {% block extra_css %}{% endblock %}
 </head>
 <body class="booking-page">

@@ -13,186 +13,194 @@
 {% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-  <!-- Movie and Showing Info -->
-  <div class="row mb-4">
-    <div class="col-12">
-      <div class="card">
+<div class="container-fluid mt-4">
+  <div class="row">
+    <!-- Left Column - Movie Information -->
+    <div class="col-lg-4">
+      <div class="card h-100">
+        <div class="card-header">
+          <h5 class="mb-0">
+            <i class="fas fa-film me-2"></i>
+            Movie Information
+          </h5>
+        </div>
         <div class="card-body">
-          <div class="row align-items-center">
-            <div class="col-md-6">
-              <h5 class="card-title mb-2">
-                <i class="fas fa-film me-2 text-primary"></i>
-                {{ showing.movie_name }}
-              </h5>
-              <div class="d-flex flex-wrap gap-3 text-muted small">
-                <span>
-                  <i class="fas fa-calendar me-1"></i>
-                  {{ showing.date.strftime('%A, %B %d, %Y') }}
-                </span>
-                <span>
-                  <i class="fas fa-clock me-1"></i>
-                  {{ showing.starttime|seconds_to_time }}
-                </span>
-                <span>
-                  <i class="fas fa-door-open me-1"></i>
-                  {{ showing.room_name }}
-                </span>
-              </div>
+          <h3 class="card-title mb-3 text-primary">
+            {{ showing.movie_name }}
+          </h3>
+          
+          <div class="movie-details">
+            <div class="detail-item mb-3">
+              <i class="fas fa-calendar text-primary me-2"></i>
+              <strong>Date:</strong>
+              <div class="ms-4">{{ showing.date.strftime('%A, %B %d, %Y') }}</div>
             </div>
-            <div class="col-md-6 text-md-end">
-              <div class="selected-seats-info">
-                <h6 class="mb-1">Selected Seats:</h6>
-                <div class="badge bg-primary">
-                  {% for seat in selected_seats %}
-                    {{ seat.seat_row }}{{ seat.seat_column }}{% if not loop.last %}, {% endif %}
-                  {% endfor %}
+            
+            <div class="detail-item mb-3">
+              <i class="fas fa-clock text-primary me-2"></i>
+              <strong>Time:</strong>
+              <div class="ms-4">{{ showing.starttime|seconds_to_time }}</div>
+            </div>
+            
+            <div class="detail-item mb-3">
+              <i class="fas fa-door-open text-primary me-2"></i>
+              <strong>Room:</strong>
+              <div class="ms-4">{{ showing.room_name }}</div>
+            </div>
+            
+            <div class="detail-item mb-3">
+              <i class="fas fa-stopwatch text-primary me-2"></i>
+              <strong>Duration:</strong>
+              <div class="ms-4">{{ showing.duration }} minutes</div>
+            </div>
+          </div>
+
+          <!-- Selected Seats Summary -->
+          <hr>
+          <div class="alert alert-info">
+            <h6 class="mb-2">
+              <i class="fas fa-check-circle me-2"></i>
+              Selected Seats:
+            </h6>
+            <div class="mb-2">
+              {% for seat in selected_seats %}
+                <span class="badge bg-primary me-1">{{ seat.seat_row }}{{ seat.seat_column }}</span>
+              {% endfor %}
+            </div>
+            <div class="fw-bold">Total: {{ selected_seats|length }} seat(s)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column - Spectator Information -->
+    <div class="col-lg-8">
+      <div class="card h-100">
+        <div class="card-header">
+          <h5 class="mb-0">
+            <i class="fas fa-users me-2"></i>
+            Spectator Information
+          </h5>
+        </div>
+        <div class="card-body">
+          <!-- Spectator Information Form -->
+          <form method="POST" action="{{ url_for('booking_confirm') }}" id="spectatorForm">
+            <!-- Hidden fields -->
+            <input type="hidden" name="showing_id" value="{{ showing.id }}">
+            {% for seat in selected_seats %}
+              <input type="hidden" name="selected_seats" value="{{ seat.id }}">
+            {% endfor %}
+
+            <!-- Booker Information -->
+            <div class="mb-4">
+              <h6 class="mb-3">
+                <i class="fas fa-user-circle me-2"></i>
+                Booker Information
+              </h6>
+              <div class="row">
+                <div class="col-md-4 mb-3">
+                  <label for="booker_first_name" class="form-label">First Name *</label>
+                  <input type="text" class="form-control" id="booker_first_name" 
+                         name="booker_first_name" required>
+                </div>
+                <div class="col-md-4 mb-3">
+                  <label for="booker_last_name" class="form-label">Last Name *</label>
+                  <input type="text" class="form-control" id="booker_last_name" 
+                         name="booker_last_name" required>
+                </div>
+                <div class="col-md-4 mb-3">
+                  <label for="booker_email" class="form-label">Email *</label>
+                  <input type="email" class="form-control" id="booker_email" 
+                         name="booker_email" required>
                 </div>
               </div>
             </div>
-          </div>
+
+            <hr>
+
+            <!-- Spectators Information -->
+            <div class="mb-4">
+              <h6 class="mb-3">
+                <i class="fas fa-users me-2"></i>
+                Spectator Details
+              </h6>
+              
+              {% for i in range(num_spectators) %}
+                <div class="spectator-section mb-4" data-spectator="{{ i }}">
+                  <div class="d-flex align-items-center mb-3">
+                    <div class="seat-badge me-3">
+                      {{ selected_seats[i].seat_row }}{{ selected_seats[i].seat_column }}
+                    </div>
+                    <h6 class="mb-0">Spectator {{ i + 1 }}</h6>
+                  </div>
+                  
+                  <div class="row">
+                    <div class="col-md-3 mb-3">
+                      <label for="spectator_{{ i }}_first_name" class="form-label">First Name *</label>
+                      <input type="text" class="form-control" 
+                             id="spectator_{{ i }}_first_name" 
+                             name="spectator_{{ i }}_first_name" required>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                      <label for="spectator_{{ i }}_last_name" class="form-label">Last Name *</label>
+                      <input type="text" class="form-control" 
+                             id="spectator_{{ i }}_last_name" 
+                             name="spectator_{{ i }}_last_name" required>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                      <label for="spectator_{{ i }}_birth_date" class="form-label">Birth Date *</label>
+                      <input type="date" class="form-control" 
+                             id="spectator_{{ i }}_birth_date" 
+                             name="spectator_{{ i }}_birth_date" required>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                      <div class="form-check mt-4">
+                        <input class="form-check-input" 
+                               type="checkbox" 
+                               id="spectator_{{ i }}_pmr" 
+                               name="spectator_{{ i }}_pmr">
+                        <label class="form-check-label" for="spectator_{{ i }}_pmr">
+                          Person with Reduced Mobility (PMR)
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {% if not loop.last %}
+                    <hr class="my-4">
+                  {% endif %}
+                </div>
+              {% endfor %}
+            </div>
+
+            <!-- Price Summary -->
+            <hr>
+            <div class="mb-4">
+              <div class="d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">Total Price:</h6>
+                <div class="h4 text-primary fw-bold" id="totalPrice">€{{ "%.2f"|format(showing.baseprice * num_spectators) }}</div>
+              </div>
+              <div class="mt-2 small text-muted" id="priceBreakdown">
+                {{ num_spectators }} tickets × €{{ "%.2f"|format(showing.baseprice) }} = €{{ "%.2f"|format(showing.baseprice * num_spectators) }}
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-flex justify-content-between mt-4">
+              <a href="{{ url_for('showing_seats', showing_id=showing.id) }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>
+                Back to Seat Selection
+              </a>
+              <button type="submit" class="btn btn-primary btn-lg" id="confirmBtn">
+                <i class="fas fa-check me-2"></i>
+                Confirm Booking
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </div>
   </div>
-
-  <!-- Spectator Information Form -->
-  <form method="POST" action="{{ url_for('booking_confirm') }}" id="spectatorForm">
-    <!-- Hidden fields -->
-    <input type="hidden" name="showing_id" value="{{ showing.id }}">
-    {% for seat in selected_seats %}
-      <input type="hidden" name="selected_seats" value="{{ seat.id }}">
-    {% endfor %}
-
-    <!-- Booker Information -->
-    <div class="row mb-4">
-      <div class="col-12">
-        <div class="card">
-          <div class="card-header">
-            <h5 class="mb-0">
-              <i class="fas fa-user-circle me-2"></i>
-              Booker Information
-            </h5>
-          </div>
-          <div class="card-body">
-            <div class="row">
-              <div class="col-md-4 mb-3">
-                <label for="booker_first_name" class="form-label">First Name *</label>
-                <input type="text" class="form-control" id="booker_first_name" 
-                       name="booker_first_name" required>
-              </div>
-              <div class="col-md-4 mb-3">
-                <label for="booker_last_name" class="form-label">Last Name *</label>
-                <input type="text" class="form-control" id="booker_last_name" 
-                       name="booker_last_name" required>
-              </div>
-              <div class="col-md-4 mb-3">
-                <label for="booker_email" class="form-label">Email *</label>
-                <input type="email" class="form-control" id="booker_email" 
-                       name="booker_email" required>
-                <div class="form-text">We'll send your tickets to this email address.</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Spectators Information -->
-    <div class="row mb-4">
-      <div class="col-12">
-        <div class="card">
-          <div class="card-header">
-            <h5 class="mb-0">
-              <i class="fas fa-users me-2"></i>
-              Spectator Information
-            </h5>
-          </div>
-          <div class="card-body">
-            {% for i in range(num_spectators) %}
-              <div class="spectator-section mb-4" data-spectator="{{ i }}">
-                <div class="d-flex align-items-center mb-3">
-                  <div class="seat-badge me-3">
-                    {{ selected_seats[i].seat_row }}{{ selected_seats[i].seat_column }}
-                  </div>
-                  <h6 class="mb-0">Spectator {{ i + 1 }}</h6>
-                </div>
-                
-                <div class="row">
-                  <div class="col-md-3 mb-3">
-                    <label for="spectator_{{ i }}_first_name" class="form-label">First Name *</label>
-                    <input type="text" class="form-control" 
-                           id="spectator_{{ i }}_first_name" 
-                           name="spectator_{{ i }}_first_name" required>
-                  </div>
-                  <div class="col-md-3 mb-3">
-                    <label for="spectator_{{ i }}_last_name" class="form-label">Last Name *</label>
-                    <input type="text" class="form-control" 
-                           id="spectator_{{ i }}_last_name" 
-                           name="spectator_{{ i }}_last_name" required>
-                  </div>
-                  <div class="col-md-3 mb-3">
-                    <label for="spectator_{{ i }}_birth_date" class="form-label">Birth Date *</label>
-                    <input type="date" class="form-control" 
-                           id="spectator_{{ i }}_birth_date" 
-                           name="spectator_{{ i }}_birth_date" required>
-                  </div>
-                  <div class="col-md-3 mb-3">
-                    <div class="form-check mt-4">
-                      <input class="form-check-input" 
-                             type="checkbox" 
-                             id="spectator_{{ i }}_pmr" 
-                             name="spectator_{{ i }}_pmr">
-                      <label class="form-check-label" for="spectator_{{ i }}_pmr">
-                        Person with Reduced Mobility (PMR)
-                      </label>
-                    </div>
-                  </div>
-                </div>
-                
-                {% if not loop.last %}
-                  <hr class="my-4">
-                {% endif %}
-              </div>
-            {% endfor %}
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Price Summary -->
-    <div class="row mb-4">
-      <div class="col-12">
-        <div class="card">
-          <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center">
-              <h5 class="mb-0">Total Price:</h5>
-              <div class="display-6 text-primary fw-bold" id="totalPrice">€{{ "%.2f"|format(showing.baseprice * num_spectators) }}</div>
-            </div>
-            <div class="mt-2 small text-muted" id="priceBreakdown">
-              {{ num_spectators }} tickets × €{{ "%.2f"|format(showing.baseprice) }} = €{{ "%.2f"|format(showing.baseprice * num_spectators) }}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Action Buttons -->
-    <div class="row mb-4">
-      <div class="col-12">
-        <div class="d-flex justify-content-between">
-          <a href="{{ url_for('showing_seats', showing_id=showing.id) }}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left me-2"></i>
-            Back to Seat Selection
-          </a>
-          <button type="submit" class="btn btn-primary btn-lg" id="confirmBtn">
-            <i class="fas fa-check me-2"></i>
-            Confirm Booking
-          </button>
-        </div>
-      </div>
-    </div>
-  </form>
 </div>
 
 <style>
