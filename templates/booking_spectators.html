@@ -179,23 +179,25 @@
                 {{ num_spectators }} Adult{{ 's' if num_spectators > 1 else '' }} (Base: €{{ "%.2f"|format(showing.baseprice / 100) }}) - Enter birth dates for accurate pricing
               </div>
             </div>
-
-            <!-- Action Buttons -->
-            <div class="d-flex justify-content-between mt-4">
-              <a href="{{ url_for('showing_seats', showing_id=showing.id) }}" class="btn btn-outline-secondary">
-                <i class="fas fa-arrow-left me-2"></i>
-                Back to Seat Selection
-              </a>
-              <button type="submit" class="btn btn-primary btn-lg" id="confirmBtn">
-                <i class="fas fa-check me-2"></i>
-                Confirm Booking
-              </button>
-            </div>
           </form>
         </div>
       </div>
     </div>
   </div>
+
+<!-- Sticky Bottom Navigation -->
+<div class="sticky-bottom-nav">
+  <div class="sticky-nav-buttons">
+    <a href="{{ url_for('showing_seats', showing_id=showing.id) }}" class="sticky-nav-btn btn-outline-secondary">
+      <i class="fas fa-arrow-left me-2"></i>
+      Back to Seat Selection
+    </a>
+    <button type="submit" form="spectatorForm" class="sticky-nav-btn btn-primary" id="confirmBtn">
+      <i class="fas fa-check me-2"></i>
+      Confirm Booking
+    </button>
+  </div>
+</div>
 
 <style>
 .progress-container {

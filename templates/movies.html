@@ -373,7 +373,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="col-12">
                     <div class="loading-container">
                         <div class="spinner"></div>
-                        <p class="mt-3 text-muted">Loading movies...</p>
                     </div>
                 </div>
             `;
@@ -422,10 +421,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if (movies.length === 0) {
             moviesContainer.innerHTML = `
                 <div class="centered-alert">
-                    <div class="alert alert-info text-center">
-                        <i class="fas fa-film fa-2x mb-3"></i>
-                        <h4>No Movies Available</h4>
-                        <p class="mb-0">No movies are showing on the selected date. Try selecting a different date!</p>
+                    <div class="text-black-50 text-center">
+                        <p class="mb-0 fs-4">No movies are showing on the selected date</p>
                     </div>
                 </div>
             `;
