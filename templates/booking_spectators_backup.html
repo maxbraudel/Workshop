@@ -158,8 +158,8 @@
                             onchange="updateTotalPrice()" required>
                       <option value="">Select ticket type</option>
                       {% for age_price in age_pricing %}
-                        <option value="{{ age_price.id }}" data-price="{{ "%.2f"|format(showing.baseprice * age_price.factor) }}">
-                          {{ age_price.name }} - €{{ "%.2f"|format(showing.baseprice * age_price.factor) }}
+                        <option value="{{ age_price.id }}" data-price="{{ "%.2f"|format((showing.baseprice / 100) * age_price.factor) }}">
+                          {{ age_price.name }} - €{{ "%.2f"|format((showing.baseprice / 100) * age_price.factor) }}
                         </option>
                       {% endfor %}
                     </select>
@@ -299,7 +299,7 @@
 
 <script>
 const agePricing = {{ age_pricing|tojson }};
-const basePrice = {{ showing.baseprice }};
+const basePrice = {{ showing.baseprice / 100 }}; // Convert cents to euros
 
 function updatePricing(spectatorIndex) {
   const birthDateInput = document.getElementById(`spectator_${spectatorIndex}_birth_date`);

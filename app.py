@@ -19,7 +19,10 @@ from src.database import (
     get_customers_for_booking,
     get_bookings_by_account_id,
     create_complete_booking,
+    create_complete_booking_secure,
     check_seats_availability,
+    get_age_pricing,
+    calculate_booking_price,
     get_user_by_id,
     add_account,
     modify_account_profile,
@@ -462,6 +465,70 @@ def booking_spectators():
         print(f"Booking spectators error: {e}")
         return redirect(url_for('movies'))
 
+@app.route('/api/calculate_price', methods=['POST'])
+def calculate_price():
+    """API endpoint to calculate booking price on the server side"""
+    try:
+        # Debug: Log the incoming request
+        print(f"DEBUG: Price calculation request received")
+        print(f"DEBUG: Request content type: {request.content_type}")
+        print(f"DEBUG: Request data: {request.get_data()}")
+        
+        data = request.get_json()
+        print(f"DEBUG: Parsed JSON data: {data}")
+        
+        showing_id = data.get('showing_id') if data else None
+        spectators = data.get('spectators', []) if data else []
+        
+        print(f"DEBUG: showing_id: {showing_id}, spectators: {spectators}")
+        
+        if not showing_id or not spectators:
+            print("DEBUG: Missing required data - showing_id or spectators")
+            return jsonify({'success': False, 'error': 'Missing required data'})
+        
+        # Get showing info to retrieve base price
+        print(f"DEBUG: Getting showing by ID: {showing_id}")
+        showing = get_showing_by_id(showing_id)
+        print(f"DEBUG: Showing result: {showing}")
+        
+        if not showing:
+            print("DEBUG: Showing not found")
+            return jsonify({'success': False, 'error': 'Showing not found'})
+        
+        # Check if baseprice field exists
+        if 'baseprice' not in showing:
+            print(f"DEBUG: baseprice field not found in showing. Available fields: {list(showing.keys())}")
+            return jsonify({'success': False, 'error': 'Base price not available'})
+        
+        base_price = showing['baseprice']
+        print(f"DEBUG: Base price: {base_price}")
+        
+        # Calculate total price using secure server-side function
+        print(f"DEBUG: Calling calculate_booking_price with showing_id={showing_id}, spectators={spectators}")
+        price_result = calculate_booking_price(showing_id, spectators)
+        print(f"DEBUG: Price calculation result: {price_result}")
+        
+        if price_result is None:
+            print("DEBUG: Price calculation returned None")
+            return jsonify({'success': False, 'error': 'Unable to calculate price'})
+        
+        result = {
+            'success': True,
+            'total_price': price_result['total_price'],
+            'base_price': price_result['base_price'],
+            'spectator_count': len(spectators),
+            'price_breakdown': price_result['price_breakdown']
+        }
+        print(f"DEBUG: Returning successful result: {result}")
+        
+        return jsonify(result)
+    
+    except Exception as e:
+        print(f"Price calculation error: {e}")
+        import traceback
+        print(f"Full traceback: {traceback.format_exc()}")
+        return jsonify({'success': False, 'error': f'Server error: {str(e)}'})
+
 @app.route('/booking/confirm', methods=['POST'])
 def booking_confirm():
     """Process the complete booking"""
@@ -524,18 +591,17 @@ def booking_confirm():
         else:
             # For anonymous bookings, we'll use None and let the database function handle it
             account_id = None
-            
-        booker_info = {
-            'account_id': account_id
-        }
         
-        booking_id = create_complete_booking(showing_id, booker_info, spectators, selected_seats)
+        # Use the secure booking function that calculates prices server-side
+        booking_result = create_complete_booking_secure(showing_id, account_id, spectators, selected_seats)
         
-        if booking_id:
+        if booking_result and booking_result.get('success'):
+            booking_id = booking_result['booking_id']
             flash('Booking confirmed successfully!', 'success')
             return redirect(url_for('booking_tickets', booking_id=booking_id))
         else:
-            flash('Booking failed. The selected seats may no longer be available.', 'error')
+            error_msg = booking_result.get('error', 'The selected seats may no longer be available.') if booking_result else 'Booking failed.'
+            flash(f'Booking failed. {error_msg}', 'error')
             return redirect(url_for('showing_seats', showing_id=showing_id))
     
     except Exception as e:

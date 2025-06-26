@@ -8,7 +8,7 @@
   <i class="fas fa-chevron-right"></i>
   <span class="step active">2. Info</span>
   <i class="fas fa-chevron-right"></i>
-  <span class="step">3. Confirm</span>
+  <span class="step">3. Confirmation</span>
 </div>
 {% endblock %}
 
@@ -178,10 +178,12 @@
             <div class="mb-4">
               <div class="d-flex justify-content-between align-items-center">
                 <h6 class="mb-0">Total Price:</h6>
-                <div class="h4 text-primary fw-bold" id="totalPrice">€{{ "%.2f"|format(showing.baseprice * num_spectators) }}</div>
+                <div class="h4 text-primary fw-bold" id="totalPrice">
+                  €{{ "%.2f"|format((showing.baseprice / 100) * num_spectators) }}
+                </div>
               </div>
               <div class="mt-2 small text-muted" id="priceBreakdown">
-                {{ num_spectators }} tickets × €{{ "%.2f"|format(showing.baseprice) }} = €{{ "%.2f"|format(showing.baseprice * num_spectators) }}
+                {{ num_spectators }} Adult{{ 's' if num_spectators > 1 else '' }} (Base: €{{ "%.2f"|format(showing.baseprice / 100) }}) - Enter birth dates for accurate pricing
               </div>
             </div>
 
@@ -309,9 +311,137 @@ function populateFirstSpectator() {
   }
 }
 
+// Calculate age from birth date
+function calculateAge(birthDate) {
+  const today = new Date();
+  const birth = new Date(birthDate);
+  let age = today.getFullYear() - birth.getFullYear();
+  const monthDiff = today.getMonth() - birth.getMonth();
+  
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    age--;
+  }
+  
+  // Ensure age is reasonable (between 0 and 120)
+  if (age < 0 || age > 120) {
+    console.warn(`Calculated unreasonable age: ${age} for birth date: ${birthDate}`);
+    return 0;
+  }
+  
+  return age;
+}
+
+// Get age category for pricing
+function getAgeCategory(age) {
+  if (age < 12) return 'Enfant';
+  if (age >= 65) return 'Senior';
+  return 'Adulte';
+}
+
+// Calculate and update price
+async function updatePrice() {
+  const showingId = document.querySelector('input[name="showing_id"]').value;
+  const spectators = [];
+  
+  // Collect spectator data
+  const spectatorSections = document.querySelectorAll('.spectator-section');
+  
+  spectatorSections.forEach((section, index) => {
+    const birthDateInput = document.getElementById(`spectator_${index}_birth_date`);
+    const pmrInput = document.getElementById(`spectator_${index}_pmr`);
+    
+    if (birthDateInput.value) {
+      // Use actual age if birth date is provided
+      const age = calculateAge(birthDateInput.value);
+      spectators.push({
+        age: age,
+        pmr: pmrInput.checked ? 1 : 0
+      });
+    } else {
+      // Default to adult age (25) if no birth date provided
+      spectators.push({
+        age: 25, // Default adult age
+        pmr: pmrInput.checked ? 1 : 0
+      });
+    }
+  });
+  
+  if (spectators.length === 0) {
+    document.getElementById('totalPrice').innerHTML = 'No spectators selected';
+    document.getElementById('priceBreakdown').textContent = 'Please select seats first';
+    return;
+  }
+  
+  // Show loading
+  document.getElementById('totalPrice').innerHTML = `
+    <div class="spinner-border spinner-border-sm me-2" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    Calculating...
+  `;
+  
+  try {
+    const response = await fetch('/api/calculate_price', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        showing_id: showingId,
+        spectators: spectators
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      // Prices are already in euros from the server
+      document.getElementById('totalPrice').textContent = `€${data.total_price.toFixed(2)}`;
+      
+      // Create breakdown
+      let breakdown = '';
+      const ageCounts = {};
+      spectators.forEach(spectator => {
+        const category = getAgeCategory(spectator.age);
+        ageCounts[category] = (ageCounts[category] || 0) + 1;
+      });
+      
+      const breakdownParts = [];
+      for (const [category, count] of Object.entries(ageCounts)) {
+        breakdownParts.push(`${count} ${category}${count > 1 ? 's' : ''}`);
+      }
+      
+      breakdown = `${breakdownParts.join(', ')} (Base: €${data.base_price.toFixed(2)})`;
+      document.getElementById('priceBreakdown').textContent = breakdown;
+    } else {
+      document.getElementById('totalPrice').textContent = 'Error calculating price';
+      document.getElementById('priceBreakdown').textContent = 'Please try again';
+    }
+  } catch (error) {
+    console.error('Error calculating price:', error);
+    document.getElementById('totalPrice').textContent = 'Error calculating price';
+    document.getElementById('priceBreakdown').textContent = 'Please try again';
+  }
+}
+
 // Initialize the page
 document.addEventListener('DOMContentLoaded', function() {
   populateFirstSpectator();
+  
+  // Add event listeners for birth date changes
+  const birthDateInputs = document.querySelectorAll('input[type="date"]');
+  const pmrInputs = document.querySelectorAll('input[type="checkbox"]');
+  
+  birthDateInputs.forEach(input => {
+    input.addEventListener('change', updatePrice);
+  });
+  
+  pmrInputs.forEach(input => {
+    input.addEventListener('change', updatePrice);
+  });
+  
+  // Initial price calculation
+  updatePrice();
 });
 </script>
 {% endblock %}

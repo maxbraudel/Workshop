@@ -32,6 +32,7 @@ from .database_retrieve import (
     get_showing_by_id,
     get_seats_for_showing,
     get_age_pricing,
+    calculate_booking_price,
     get_booking_by_id,
     get_customers_for_booking,
     get_bookings_by_account_id
@@ -56,7 +57,8 @@ from .database_modify import (
     modify_account_profile,
     modify_account_password,
     check_seats_availability,
-    create_complete_booking
+    create_complete_booking,
+    create_complete_booking_secure
 )
 
 __all__ = [
@@ -80,12 +82,10 @@ __all__ = [
     'get_showing_by_id',
     'get_seats_for_showing',
     'get_age_pricing',
+    'calculate_booking_price',
     'get_booking_by_id',
     'get_customers_for_booking',
     'get_bookings_by_account_id',
-    'get_age_pricing',
-    'get_booking_by_id',
-    'get_customers_for_booking',
     
     # Validation functions
     'validate_signup_identifiers',
@@ -103,5 +103,6 @@ __all__ = [
     'modify_account_profile',
     'modify_account_password',
     'check_seats_availability',
-    'create_complete_booking'
+    'create_complete_booking',
+    'create_complete_booking_secure'
 ]

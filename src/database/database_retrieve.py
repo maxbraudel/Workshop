@@ -217,13 +217,98 @@ def get_seats_for_showing(showing_id):
 
 @handle_db_errors(default_return=[])
 def get_age_pricing():
-    """Get all age-based pricing rules"""
+    """Get all age pricing rules"""
     with get_db_connection() as conn:
         cursor = conn.cursor(dictionary=True)
         
         try:
-            cursor.execute("SELECT * FROM ageprice ORDER BY agemin")
+            cursor.execute("""
+                SELECT id, name, agemin, agemax, factor
+                FROM ageprice
+                ORDER BY agemin
+            """)
             return cursor.fetchall()
+        finally:
+            cursor.close()
+
+@handle_db_errors(default_return=None)
+def calculate_booking_price(showing_id, spectators):
+    """
+    Calculate total booking price server-side based on showing base price and spectator ages
+    
+    Args:
+        showing_id: ID of the showing
+        spectators: List of dictionaries with 'age' key
+    
+    Returns:
+        Dictionary with total_price and price_breakdown
+    """
+    with get_db_connection() as conn:
+        cursor = conn.cursor(dictionary=True)
+        try:
+            # Get showing base price
+            cursor.execute("""
+                SELECT baseprice 
+                FROM showing 
+                WHERE id = %s
+            """, (showing_id,))
+            
+            showing = cursor.fetchone()
+            if not showing:
+                return None
+                
+            # Convert base price from cents to euros
+            base_price_cents = float(showing['baseprice'])
+            base_price = base_price_cents / 100.0  # Convert cents to euros
+            
+            # Get age pricing rules
+            cursor.execute("""
+                SELECT id, name, agemin, agemax, factor
+                FROM ageprice
+                ORDER BY agemin
+            """)
+            
+            age_rules = cursor.fetchall()
+            
+            if not age_rules:
+                return None
+            
+            total_price = 0.0
+            price_breakdown = []
+            
+            # Calculate price for each spectator
+            for spectator in spectators:
+                age = int(spectator['age'])
+                
+                # Find appropriate age rule
+                applicable_rule = None
+                for rule in age_rules:
+                    if rule['agemin'] <= age <= rule['agemax']:
+                        applicable_rule = rule
+                        break
+                
+                if not applicable_rule:
+                    # Fallback to adult pricing if no rule matches
+                    applicable_rule = next((r for r in age_rules if r['name'] == 'Adulte'), age_rules[0])
+                
+                # Calculate price for this spectator (already in euros)
+                spectator_price = base_price * float(applicable_rule['factor'])
+                total_price += spectator_price
+                
+                price_breakdown.append({
+                    'age': age,
+                    'category': applicable_rule['name'],
+                    'factor': float(applicable_rule['factor']),
+                    'price': round(spectator_price, 2)
+                })
+            
+            return {
+                'total_price': round(total_price, 2),
+                'base_price': base_price,
+                'spectator_count': len(spectators),
+                'price_breakdown': price_breakdown
+            }
+            
         finally:
             cursor.close()
 

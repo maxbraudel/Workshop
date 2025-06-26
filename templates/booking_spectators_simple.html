@@ -179,10 +179,10 @@
           <div class="card-body">
             <div class="d-flex justify-content-between align-items-center">
               <h5 class="mb-0">Total Price:</h5>
-              <div class="display-6 text-primary fw-bold" id="totalPrice">€{{ "%.2f"|format(showing.baseprice * num_spectators) }}</div>
+              <div class="display-6 text-primary fw-bold" id="totalPrice">€{{ "%.2f"|format((showing.baseprice / 100) * num_spectators) }}</div>
             </div>
             <div class="mt-2 small text-muted" id="priceBreakdown">
-              {{ num_spectators }} tickets × €{{ "%.2f"|format(showing.baseprice) }} = €{{ "%.2f"|format(showing.baseprice * num_spectators) }}
+              {{ num_spectators }} tickets × €{{ "%.2f"|format(showing.baseprice / 100) }} = €{{ "%.2f"|format((showing.baseprice / 100) * num_spectators) }}
             </div>
           </div>
         </div>

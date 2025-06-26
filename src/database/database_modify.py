@@ -358,3 +358,98 @@ def create_complete_booking(showing_id, booker_info, spectators, seat_assignment
             return None
         finally:
             cursor.close()
+
+@handle_db_errors(default_return=None)
+def create_complete_booking_secure(showing_id, account_id, spectators, selected_seats):
+    """
+    Create a complete booking with server-side price calculation
+    
+    Args:
+        showing_id: ID of the showing
+        account_id: ID of the account (None for anonymous)
+        spectators: List of spectator dictionaries with firstname, lastname, age
+        selected_seats: List of seat IDs
+    
+    Returns:
+        Dictionary with booking_id and calculated price info
+    """
+    
+    # First, calculate the price server-side
+    from .database_retrieve import calculate_booking_price
+    
+    price_info = calculate_booking_price(showing_id, spectators)
+    if not price_info:
+        return {'success': False, 'error': 'Could not calculate price'}
+    
+    # Validate that number of spectators matches number of seats
+    if len(spectators) != len(selected_seats):
+        return {'success': False, 'error': 'Number of spectators must match number of seats'}
+    
+    with get_db_connection() as conn:
+        cursor = conn.cursor(dictionary=True)
+        
+        try:
+            # Start transaction
+            conn.start_transaction()
+            
+            # Verify seats are still available
+            placeholders = ','.join(['%s'] * len(selected_seats))
+            cursor.execute(f"""
+                SELECT seat_id FROM seatreservation 
+                WHERE showing_id = %s AND seat_id IN ({placeholders})
+            """, [showing_id] + selected_seats)
+            
+            occupied_seats = cursor.fetchall()
+            if occupied_seats:
+                conn.rollback()
+                return {'success': False, 'error': 'Some seats are no longer available'}
+            
+            # Use account_id = 1 for anonymous bookings if none provided
+            if account_id is None:
+                account_id = 1
+            
+            # Create booking record with calculated price (total_price is already in euros)
+            cursor.execute("""
+                INSERT INTO booking (price, account_id, showing_id)
+                VALUES (%s, %s, %s)
+            """, (price_info['total_price'], account_id, showing_id))
+            
+            booking_id = cursor.lastrowid
+            
+            # Create customer records and seat reservations
+            for i, (spectator, seat_id) in enumerate(zip(spectators, selected_seats)):
+                # Create customer record
+                cursor.execute("""
+                    INSERT INTO customer (firstname, lastname, age, pmr, booking_id)
+                    VALUES (%s, %s, %s, %s, %s)
+                """, (
+                    spectator['firstname'],
+                    spectator['lastname'],
+                    int(spectator['age']),
+                    spectator.get('pmr', 0),
+                    booking_id
+                ))
+                
+                customer_id = cursor.lastrowid
+                
+                # Create seat reservation
+                cursor.execute("""
+                    INSERT INTO seatreservation (customer_id, showing_id, seat_id)
+                    VALUES (%s, %s, %s)
+                """, (customer_id, showing_id, seat_id))
+            
+            # Commit transaction
+            conn.commit()
+            
+            return {
+                'success': True,
+                'booking_id': booking_id,
+                'price_info': price_info
+            }
+            
+        except Exception as e:
+            conn.rollback()
+            logger.error(f"Error creating secure booking: {e}")
+            return {'success': False, 'error': 'Database error occurred'}
+        finally:
+            cursor.close()
