@@ -25,25 +25,25 @@
           <div class="movie-details">
             <div class="mb-3">
               <i class="fas fa-calendar text-primary me-2"></i>
-              <strong>Date:</strong>
+              <strong>Date</strong>
               <div class="ms-4">{{ showing.date.strftime('%A, %B %d, %Y') }}</div>
             </div>
             
             <div class="mb-3">
               <i class="fas fa-clock text-primary me-2"></i>
-              <strong>Time:</strong>
+              <strong>Time</strong>
               <div class="ms-4">{{ showing.starttime|seconds_to_time }}</div>
             </div>
             
             <div class="mb-3">
               <i class="fas fa-door-open text-primary me-2"></i>
-              <strong>Room:</strong>
+              <strong>Room</strong>
               <div class="ms-4">{{ showing.room_name }}</div>
             </div>
             
             <div class="mb-3">
               <i class="fas fa-stopwatch text-primary me-2"></i>
-              <strong>Duration:</strong>
+              <strong>Duration</strong>
               <div class="ms-4">{{ showing.duration }} minutes</div>
             </div>
           </div>

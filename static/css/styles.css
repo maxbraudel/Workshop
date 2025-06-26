@@ -1003,6 +1003,7 @@ h2 {
   justify-content: center;
   text-decoration: none;
   transition: all 0.3s ease;
+  outline: none !important;
 }
 
 /* Single button takes full width */
@@ -1040,7 +1041,6 @@ h2 {
   background-color: #6c757d;
   border-color: #6c757d;
   color: white;
-  transform: translateY(-1px);
 }
 
 /* Success button styles */
@@ -1054,7 +1054,6 @@ h2 {
   background-color: #157347;
   border-color: #157347;
   color: white;
-  transform: translateY(-1px);
 }
 
 /* Responsive adjustments for sticky buttons */

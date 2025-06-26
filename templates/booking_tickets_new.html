@@ -56,18 +56,18 @@
             <div class="col-md-6">
               <h6 class="text-muted mb-2">Movie Information</h6>
               <div class="mb-2">
-                <strong>Movie:</strong> {{ booking.movie_name }}
+                <strong>Movie</strong> {{ booking.movie_name }}
               </div>
               <div class="mb-2">
-                <strong>Date:</strong> 
+                <strong>Date</strong> 
                 {{ booking.date.strftime('%A, %B %d, %Y') }}
               </div>
               <div class="mb-2">
-                <strong>Time:</strong> 
+                <strong>Time</strong> 
                 {{ (booking.starttime|int / 3600)|int }}:{{ '%02d'|format(((booking.starttime|int % 3600) / 60)|int) }}
               </div>
               <div class="mb-2">
-                <strong>Room:</strong> {{ booking.room_name }}
+                <strong>Room</strong> {{ booking.room_name }}
               </div>
             </div>
             <div class="col-md-6">
