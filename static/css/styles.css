@@ -1107,7 +1107,7 @@ h2 {
 .seats-row {
   display: flex;
   margin-bottom: 5px;
-  gap: 10px;
+  gap: 7px;
 }
 
 /* Individual seat element */
@@ -1190,7 +1190,6 @@ h2 {
 .seat.normal:not(.occupied):not(.selected):hover,
 .seat.pmr:not(.occupied):not(.selected):hover {
   opacity: 0.7;
-  transform: scale(1.05);
 }
 
 /* ================================

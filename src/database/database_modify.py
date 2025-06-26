@@ -360,7 +360,7 @@ def create_complete_booking(showing_id, booker_info, spectators, seat_assignment
             cursor.close()
 
 @handle_db_errors(default_return=None)
-def create_complete_booking_secure(showing_id, account_id, spectators, selected_seats):
+def create_complete_booking_secure(showing_id, account_id, spectators, selected_seats, booker_info=None):
     """
     Create a complete booking with server-side price calculation
     
@@ -369,6 +369,7 @@ def create_complete_booking_secure(showing_id, account_id, spectators, selected_
         account_id: ID of the account (None for anonymous)
         spectators: List of spectator dictionaries with firstname, lastname, age
         selected_seats: List of seat IDs
+        booker_info: Dictionary with booker first_name, last_name, email
     
     Returns:
         Dictionary with booking_id and calculated price info
@@ -408,11 +409,27 @@ def create_complete_booking_secure(showing_id, account_id, spectators, selected_
             if account_id is None:
                 account_id = 1
             
-            # Create booking record with calculated price (total_price is already in euros)
+            # Ensure we have booker info for the booking table
+            if not booker_info:
+                # Use default values for anonymous bookings
+                booker_info = {
+                    'first_name': 'Anonymous',
+                    'last_name': 'User',
+                    'email': 'anonymous@cinemacousas.com'
+                }
+            
+            # Create booking record with calculated price and booker information
             cursor.execute("""
-                INSERT INTO booking (price, account_id, showing_id)
-                VALUES (%s, %s, %s)
-            """, (price_info['total_price'], account_id, showing_id))
+                INSERT INTO booking (price, account_id, showing_id, first_name, last_name, email)
+                VALUES (%s, %s, %s, %s, %s, %s)
+            """, (
+                price_info['total_price'], 
+                account_id, 
+                showing_id,
+                booker_info['first_name'],
+                booker_info['last_name'],
+                booker_info['email']
+            ))
             
             booking_id = cursor.lastrowid
             

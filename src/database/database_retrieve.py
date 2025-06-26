@@ -265,6 +265,62 @@ def get_showing_by_id(showing_id):
         finally:
             cursor.close()
 
+
+def is_showing_expired(showing):
+    """Check if a showing has expired based on end time (start time + movie duration)
+    
+    Args:
+        showing: A showing dictionary with date, starttime, and duration fields
+        
+    Returns:
+        bool: True if the showing has expired (ended), False otherwise
+    """
+    from datetime import datetime, timedelta
+    
+    if not showing:
+        return True
+    
+    try:
+        current_time = datetime.now()
+        show_date = showing['date']
+        start_time = showing['starttime'] 
+        duration = showing['duration']
+        
+        # Convert starttime to seconds if it's a timedelta
+        if hasattr(start_time, 'total_seconds'):
+            start_seconds = int(start_time.total_seconds())
+        else:
+            start_seconds = int(start_time)
+        
+        # Calculate show start datetime
+        start_hour = start_seconds // 3600
+        start_minute = (start_seconds % 3600) // 60
+        start_second = start_seconds % 60
+        
+        show_start = datetime.combine(show_date, datetime.min.time().replace(
+            hour=start_hour, minute=start_minute, second=start_second
+        ))
+        
+        # Calculate show end time
+        show_end = show_start + timedelta(minutes=duration)
+        
+        # Return True if the show has ended
+        is_expired = show_end < current_time
+        
+        print(f"DEBUG: Checking expiration for showing {showing.get('id', 'unknown')}")
+        print(f"  Show start: {show_start}")
+        print(f"  Show end: {show_end}")
+        print(f"  Current time: {current_time}")
+        print(f"  Is expired: {is_expired}")
+        print("---")
+        
+        return is_expired
+        
+    except Exception as e:
+        print(f"ERROR: Failed to check showing expiration: {e}")
+        # In case of error, consider expired to be safe
+        return True
+
 @handle_db_errors(default_return=[])
 def get_seats_for_showing(showing_id):
     """Get all seats for a showing with their reservation status"""

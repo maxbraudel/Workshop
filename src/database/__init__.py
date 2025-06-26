@@ -35,7 +35,8 @@ from .database_retrieve import (
     calculate_booking_price,
     get_booking_by_id,
     get_customers_for_booking,
-    get_bookings_by_account_id
+    get_bookings_by_account_id,
+    is_showing_expired
 )
 
 # Import validation functions

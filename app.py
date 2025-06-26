@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, abort
 from src.config import get_config
 from src.session_manager import init_session_manager
 from src.middleware import init_middleware, login_required, logout_required
@@ -30,7 +30,8 @@ from src.database import (
     validate_signup_data,
     validate_signup_identifiers,
     validate_signup_passwords,
-    validate_login_data
+    validate_login_data,
+    is_showing_expired
 )
 
 # Get configuration
@@ -405,6 +406,10 @@ def showing_seats(showing_id):
             flash('Showing not found.', 'error')
             return redirect(url_for('movies'))
         
+        # Check if showing has expired
+        if is_showing_expired(showing):
+            abort(404)
+        
         # Get seats for the showing
         seats = get_seats_for_showing(showing_id)
         if seats is None:
@@ -416,6 +421,11 @@ def showing_seats(showing_id):
                              seats=seats)
     
     except Exception as e:
+        # Re-raise HTTP exceptions (like abort(404)) to let Flask handle them properly
+        from werkzeug.exceptions import HTTPException
+        if isinstance(e, HTTPException):
+            raise e
+        
         flash('Server unavailable, please try again later.', 'error')
         print(f"Showing seats error: {e}")
         return redirect(url_for('movies'))
@@ -451,6 +461,10 @@ def booking_spectators():
             flash('Booking information unavailable.', 'error')
             return redirect(url_for('movies'))
         
+        # Check if showing has expired
+        if is_showing_expired(showing):
+            abort(404)
+        
         # Get seat details for the selected seats
         all_seats = get_seats_for_showing(showing_id)
         selected_seat_details = [seat for seat in all_seats if seat['id'] in selected_seats]
@@ -468,6 +482,11 @@ def booking_spectators():
                              current_user=current_user)
     
     except Exception as e:
+        # Re-raise HTTP exceptions (like abort(404)) to let Flask handle them properly
+        from werkzeug.exceptions import HTTPException
+        if isinstance(e, HTTPException):
+            raise e
+        
         flash('Server unavailable, please try again later.', 'error')
         print(f"Booking spectators error: {e}")
         return redirect(url_for('movies'))
@@ -544,6 +563,16 @@ def booking_confirm():
         showing_id = request.form.get('showing_id')
         selected_seats = request.form.getlist('selected_seats')
         
+        # Validate showing exists and hasn't expired
+        if showing_id:
+            showing = get_showing_by_id(showing_id)
+            if not showing:
+                flash('Showing not found.', 'error')
+                return redirect(url_for('movies'))
+            
+            if is_showing_expired(showing):
+                abort(404)
+        
         # Booker information
         booker_email = request.form.get('booker_email')
         booker_first_name = request.form.get('booker_first_name')
@@ -608,8 +637,15 @@ def booking_confirm():
             # For anonymous bookings, we'll use None and let the database function handle it
             account_id = None
         
+        # Prepare booker information
+        booker_info = {
+            'first_name': booker_first_name,
+            'last_name': booker_last_name,
+            'email': booker_email
+        }
+        
         # Use the secure booking function that calculates prices server-side
-        booking_result = create_complete_booking_secure(showing_id, account_id, spectators, selected_seat_ids)
+        booking_result = create_complete_booking_secure(showing_id, account_id, spectators, selected_seat_ids, booker_info)
         
         if booking_result and booking_result.get('success'):
             booking_id = booking_result['booking_id']
@@ -621,6 +657,11 @@ def booking_confirm():
             return redirect(url_for('showing_seats', showing_id=showing_id))
     
     except Exception as e:
+        # Re-raise HTTP exceptions (like abort(404)) to let Flask handle them properly
+        from werkzeug.exceptions import HTTPException
+        if isinstance(e, HTTPException):
+            raise e
+        
         flash('Server unavailable, please try again later.', 'error')
         print(f"Booking confirm error: {e}")
         return redirect(url_for('movies'))
