@@ -1084,3 +1084,121 @@ h2 {
     min-height: 42px;
   }
 }
+
+/* ================================
+   SEAT GRID STYLES
+   ================================ */
+
+/* Theater container */
+.movie-theater {
+  width: min-content;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Seat grid container */
+.seats-grid {
+  display: inline-block;
+  border-radius: 8px;
+}
+
+/* Row of seats */
+.seats-row {
+  display: flex;
+  margin-bottom: 5px;
+  gap: 10px;
+}
+
+/* Individual seat element */
+.seat {
+  width: 35px;
+  height: 35px;
+  cursor: pointer;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  position: relative;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+/* ================================
+   SEAT TYPES - AVAILABLE STATES
+   ================================ */
+
+/* Normal available seat */
+.seat.normal {
+  background-image: url('/static/images/seat_types/seat_available.svg');
+}
+
+/* PMR available seat */
+.seat.pmr {
+  background-image: url('/static/images/seat_types/seat_pmr_available.svg');
+}
+
+/* Empty space (no seat) */
+.seat.empty {
+  background-image: url('/static/images/seat_types/empty.svg');
+  cursor: default;
+}
+
+/* Stair/aisle space */
+.seat.stair {
+  background-image: url('/static/images/seat_types/stair.svg');
+  cursor: default;
+}
+
+/* ================================
+   SEAT STATES - OCCUPIED
+   ================================ */
+
+/* Normal occupied seat */
+.seat.normal.occupied {
+  background-image: url('/static/images/seat_types/seat_unavailable.svg');
+  cursor: not-allowed;
+}
+
+/* PMR occupied seat */
+.seat.pmr.occupied {
+  background-image: url('/static/images/seat_types/seat_pmr_unavailable.svg');
+  cursor: not-allowed;
+}
+
+/* ================================
+   SEAT STATES - SELECTED
+   ================================ */
+
+/* Normal selected seat */
+.seat.normal.selected {
+  background-image: url('/static/images/seat_types/seat_selected.svg');
+}
+
+/* PMR selected seat */
+.seat.pmr.selected {
+  background-image: url('/static/images/seat_types/seat_pmr_selected.svg');
+}
+
+/* ================================
+   SEAT INTERACTIONS
+   ================================ */
+
+/* Hover effects for selectable seats */
+.seat.normal:not(.occupied):not(.selected):hover,
+.seat.pmr:not(.occupied):not(.selected):hover {
+  opacity: 0.7;
+  transform: scale(1.05);
+}
+
+/* ================================
+   SEAT LEGEND
+   ================================ */
+
+.seat-legend-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}

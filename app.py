@@ -650,7 +650,7 @@ def booking_tickets(booking_id):
 @app.route('/my-tickets')
 @login_required
 def my_tickets():
-    """Display user's booking history"""
+    """Display user's non-expired booking history"""
     try:
         from flask import g
         
@@ -661,8 +661,8 @@ def my_tickets():
         
         user_id = g.current_user['id']
         
-        # Get all bookings for this user
-        bookings = get_bookings_by_account_id(user_id)
+        # Get only non-expired bookings for this user
+        bookings = get_bookings_by_account_id(user_id, expired=False)
         
         # Add today's date for comparison in template
         from datetime import date
@@ -679,6 +679,40 @@ def my_tickets():
     except Exception as e:
         flash('Server unavailable, please try again later.', 'error')
         print(f"My tickets error: {e}")
+        return redirect(url_for('index'))
+
+@app.route('/expired-tickets')
+@login_required
+def expired_tickets():
+    """Display user's expired booking history"""
+    try:
+        from flask import g
+        
+        # Get user ID from g.current_user (set by middleware)
+        if not hasattr(g, 'current_user') or not g.current_user:
+            flash('Session error. Please log in again.', 'error')
+            return redirect(url_for('login'))
+        
+        user_id = g.current_user['id']
+        
+        # Get only expired bookings for this user
+        bookings = get_bookings_by_account_id(user_id, expired=True)
+        
+        # Add today's date for comparison in template
+        from datetime import date
+        today = date.today()
+        
+        # Ensure all booking dates are date objects for proper comparison
+        for booking in bookings:
+            if hasattr(booking['date'], 'date'):
+                # If it's a datetime object, extract the date part
+                booking['date'] = booking['date'].date()
+        
+        return render_template('expired_tickets.html', bookings=bookings, today=today)
+    
+    except Exception as e:
+        flash('Server unavailable, please try again later.', 'error')
+        print(f"Expired tickets error: {e}")
         return redirect(url_for('index'))
 
 # Helper function to check if a URL is an authentication page

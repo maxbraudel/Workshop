@@ -360,24 +360,39 @@ def get_customers_for_booking(booking_id):
             cursor.close()
 
 @handle_db_errors(default_return=[])
-def get_bookings_by_account_id(account_id):
-    """Get all bookings for a specific account with movie and showing information"""
+def get_bookings_by_account_id(account_id, expired=False):
+    """Get bookings for a specific account with movie and showing information
+    
+    Args:
+        account_id: The account ID to get bookings for
+        expired: If True, get only expired tickets. If False, get only non-expired tickets.
+    """
     with get_db_connection() as conn:
         cursor = conn.cursor(dictionary=True)
         
         try:
-            cursor.execute("""
+            # Calculate showing end time and filter based on current datetime
+            if expired:
+                # Get only expired tickets (showing end time is before now)
+                where_clause = "AND DATE_ADD(TIMESTAMP(s.date, SEC_TO_TIME(s.starttime)), INTERVAL m.duration MINUTE) < NOW()"
+            else:
+                # Get only non-expired tickets (showing end time is after now)
+                where_clause = "AND DATE_ADD(TIMESTAMP(s.date, SEC_TO_TIME(s.starttime)), INTERVAL m.duration MINUTE) >= NOW()"
+            
+            cursor.execute(f"""
                 SELECT b.id, b.price, b.account_id, b.showing_id,
                        s.date, s.starttime, s.baseprice,
                        m.name as movie_name, m.duration,
                        r.name as room_name,
-                       COUNT(c.id) as num_spectators
+                       COUNT(c.id) as num_spectators,
+                       DATE_ADD(TIMESTAMP(s.date, SEC_TO_TIME(s.starttime)), INTERVAL m.duration MINUTE) as showing_end_time
                 FROM booking b
                 JOIN showing s ON b.showing_id = s.id
                 JOIN movie m ON s.movie_id = m.id
                 JOIN room r ON s.room_id = r.id
                 LEFT JOIN customer c ON b.id = c.booking_id
                 WHERE b.account_id = %s
+                {where_clause}
                 GROUP BY b.id, b.price, b.account_id, b.showing_id, s.date, s.starttime, s.baseprice, m.name, m.duration, r.name
                 ORDER BY s.date DESC, s.starttime DESC
             """, (account_id,))

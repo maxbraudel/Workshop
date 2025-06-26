@@ -147,92 +147,7 @@
 </form>
 
 <style>
-/* Seat Grid Styles */
-.movie-theater {
-  width: min-content;
-  display: flex;
-    flex-direction: column;
-    gap: 1rem;
-
-}
-
-.seats-grid {
-  display: inline-block;
-  border-radius: 8px;
-}
-
-.seats-row {
-  display: flex;
-  margin-bottom: 5px;
-  gap: 10px;
-}
-
-.seat-admin {
-  width: 35px;
-  height: 35px;
-  cursor: pointer;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  position: relative;
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-}
-
-/* Seat type backgrounds */
-.seat-admin.normal {
-  background-image: url('/static/images/seat_types/seat_available.svg');
-}
-
-.seat-admin.pmr {
-  background-image: url('/static/images/seat_types/seat_pmr_available.svg');
-}
-
-.seat-admin.empty {
-  background-image: url('/static/images/seat_types/empty.svg');
-  cursor: default;
-}
-
-.seat-admin.stair {
-  background-image: url('/static/images/seat_types/stair.svg');
-  cursor: default;
-}
-
-/* Occupied seats */
-.seat-admin.normal.occupied {
-  background-image: url('/static/images/seat_types/seat_unavailable.svg');
-}
-
-.seat-admin.pmr.occupied {
-  background-image: url('/static/images/seat_types/seat_pmr_unavailable.svg');
-}
-
-/* Selected seats */
-.seat-admin.normal.selected {
-  background-image: url('/static/images/seat_types/seat_selected.svg');
-}
-
-.seat-admin.pmr.selected {
-  background-image: url('/static/images/seat_types/seat_pmr_selected.svg');
-}
-
-/* Hover effects */
-.seat-admin.normal:not(.occupied):not(.selected):hover,
-.seat-admin.pmr:not(.occupied):not(.selected):hover {
-  opacity: 0.7;
-}
-
-.seat-legend-icon {
-  width: 20px;
-  height: 20px;
-  object-fit: contain;
-}
-
-
-
+/* Continue button specific styling */
 #continueBtn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
@@ -365,7 +280,7 @@ function generateSeatGrid() {
       
       if (seat) {
         const seatDiv = document.createElement('div');
-        seatDiv.className = `seat-admin ${seat.type}`;
+        seatDiv.className = `seat ${seat.type}`;
         seatDiv.setAttribute('data-seat-id', seat.id);
         seatDiv.setAttribute('data-current-type', seat.type);
         seatDiv.setAttribute('data-row', seat.seat_row);
@@ -391,7 +306,7 @@ function generateSeatGrid() {
       } else {
         // Empty space where no seat exists
         const emptyDiv = document.createElement('div');
-        emptyDiv.className = 'seat-admin stair';
+        emptyDiv.className = 'seat stair';
         seatsRow.appendChild(emptyDiv);
       }
     }

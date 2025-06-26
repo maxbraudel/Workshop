@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}My Tickets - Cinemacousas{% endblock %}
+{% block title %}Expired Tickets - Cinemacousas{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
@@ -9,13 +9,13 @@
     <div class="col-12">
       <div class="d-flex align-items-center justify-content-between">
         <h2 class="mb-0">
-          <i class="fas fa-ticket-alt me-2 text-primary"></i>
-          My Tickets
+          <i class="fas fa-history me-2 text-secondary"></i>
+          Expired Tickets
         </h2>
         <div class="d-flex gap-2">
-          <a href="{{ url_for('expired_tickets') }}" class="btn btn-outline-secondary">
-            <i class="fas fa-history me-2"></i>
-            Show All Expired Tickets
+          <a href="{{ url_for('my_tickets') }}" class="btn btn-outline-primary">
+            <i class="fas fa-ticket-alt me-2"></i>
+            Current Tickets
           </a>
           <a href="{{ url_for('movies') }}" class="btn btn-primary">
             <i class="fas fa-plus me-2"></i>
@@ -23,7 +23,7 @@
           </a>
         </div>
       </div>
-      <p class="text-muted mb-0">View and manage your current movie ticket bookings</p>
+      <p class="text-muted mb-0">View your past movie ticket bookings</p>
     </div>
   </div>
 
@@ -32,12 +32,12 @@
     <div class="row">
       {% for booking in bookings %}
         <div class="col-12 mb-4">
-          <div class="card booking-card clickable-booking" data-booking-url="{{ url_for('booking_tickets', booking_id=booking.id) }}">
+          <div class="card booking-card clickable-booking expired-ticket" data-booking-url="{{ url_for('booking_tickets', booking_id=booking.id) }}">
             <div class="card-body">
               <div class="row align-items-center">
                 <!-- Movie Information -->
                 <div class="col-md-4">
-                  <h5 class="card-title text-primary mb-2">
+                  <h5 class="card-title text-secondary mb-2">
                     <i class="fas fa-film me-2"></i>
                     {{ booking.movie_name }}
                   </h5>
@@ -58,7 +58,7 @@
                   <div class="showing-info">
                     <div class="mb-2">
                       <strong>
-                        <i class="fas fa-calendar me-2 text-primary"></i>
+                        <i class="fas fa-calendar me-2 text-secondary"></i>
                         {{ booking.date.strftime('%A, %B %d, %Y') }}
                       </strong>
                     </div>
@@ -82,8 +82,11 @@
                         ID: #{{ booking.id }}
                       </span>
                     </div>
+                    <div class="mb-2">
+                      <span class="badge bg-danger">Expired</span>
+                    </div>
                     <div class="price mb-3">
-                      <h4 class="text-success mb-0">
+                      <h4 class="text-muted mb-0">
                         €{{ "%.2f"|format(booking.price) }}
                       </h4>
                     </div>
@@ -109,15 +112,15 @@
           <div class="card-body">
             <div class="row text-center">
               <div class="col-md-4">
-                <h3 class="text-primary">{{ bookings|length }}</h3>
-                <p class="mb-0 text-muted">Total Bookings</p>
+                <h3 class="text-secondary">{{ bookings|length }}</h3>
+                <p class="mb-0 text-muted">Expired Bookings</p>
               </div>
               <div class="col-md-4">
-                <h3 class="text-success">{{ bookings|sum(attribute='num_spectators') }}</h3>
+                <h3 class="text-secondary">{{ bookings|sum(attribute='num_spectators') }}</h3>
                 <p class="mb-0 text-muted">Total Tickets</p>
               </div>
               <div class="col-md-4">
-                <h3 class="text-info">€{{ "%.2f"|format(bookings|sum(attribute='price')) }}</h3>
+                <h3 class="text-secondary">€{{ "%.2f"|format(bookings|sum(attribute='price')) }}</h3>
                 <p class="mb-0 text-muted">Total Spent</p>
               </div>
             </div>
@@ -127,20 +130,20 @@
     </div>
 
   {% else %}
-    <!-- No Bookings State -->
+    <!-- No Expired Bookings State -->
     <div class="row">
       <div class="col-12">
         <div class="text-center py-5">
           <div class="empty-state">
-            <i class="fas fa-ticket-alt fa-5x text-muted mb-4"></i>
-            <h3 class="text-muted">No Tickets Yet</h3>
+            <i class="fas fa-history fa-5x text-muted mb-4"></i>
+            <h3 class="text-muted">No Expired Tickets</h3>
             <p class="text-muted mb-4">
-              You haven't booked any movie tickets yet.<br>
-              Start by browsing our current movies and book your first show!
+              You don't have any expired movie tickets yet.<br>
+              Your past bookings will appear here after the movie showings have ended.
             </p>
-            <a href="{{ url_for('movies') }}" class="btn btn-primary btn-lg">
-              <i class="fas fa-film me-2"></i>
-              Browse Movies
+            <a href="{{ url_for('my_tickets') }}" class="btn btn-primary btn-lg">
+              <i class="fas fa-ticket-alt me-2"></i>
+              View Current Tickets
             </a>
           </div>
         </div>
@@ -150,40 +153,6 @@
 </div>
 
 <style>
-.booking-card {
-  border-left: 4px solid #007bff;
-  transition: all 0.3s ease;
-  border: 1px solid #e9ecef;
-}
-
-.booking-card:hover {
-  background-color: var(--bs-light);
-}
-
-.showing-info {
-  padding-left: 20px;
-  border-left: 2px solid #e9ecef;
-}
-
-.booking-details {
-  text-align: right;
-}
-
-@media (max-width: 768px) {
-  .booking-details {
-    text-align: left;
-    margin-top: 20px;
-  }
-  
-  .showing-info {
-    padding-left: 0;
-    border-left: none;
-    border-top: 2px solid #e9ecef;
-    padding-top: 15px;
-    margin-top: 15px;
-  }
-}
-
 .empty-state {
   max-width: 400px;
   margin: 0 auto;
@@ -212,6 +181,20 @@
 .clickable-booking:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+/* Expired ticket specific styling */
+.expired-ticket {
+  opacity: 0.8;
+  border-left: 4px solid #dc3545;
+}
+
+.expired-ticket .card-title {
+  color: #6c757d !important;
+}
+
+.expired-ticket:hover {
+  opacity: 1;
 }
 </style>
 
