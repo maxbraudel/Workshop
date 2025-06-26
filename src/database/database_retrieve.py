@@ -92,16 +92,21 @@ def get_all_movies():
 
 @handle_db_errors(default_return=[])
 def get_movies_with_showings():
-    """Get all movies with their showings"""
+    """Get all movies with their non-expired showings"""
     with get_db_connection() as conn:
         cursor = conn.cursor(dictionary=True)
         
         try:
+            from datetime import datetime, timedelta
+            current_time = datetime.now()
+            
             # Get all movies
             cursor.execute("SELECT * FROM movie ORDER BY name")
             movies = cursor.fetchall()
             
-            # For each movie, get its showings
+            # For each movie, get its non-expired showings
+            movies_with_valid_showings = []
+            
             for movie in movies:
                 cursor.execute("""
                     SELECT id, date, starttime, baseprice, room_id 
@@ -109,26 +114,63 @@ def get_movies_with_showings():
                     WHERE movie_id = %s 
                     ORDER BY date, starttime
                 """, (movie['id'],))
-                showings = cursor.fetchall()
+                all_showings = cursor.fetchall()
                 
-                # Convert timedelta objects to total seconds for JSON serialization
-                for showing in showings:
-                    if hasattr(showing['starttime'], 'total_seconds'):
-                        showing['starttime'] = showing['starttime'].total_seconds()
+                # Filter out expired showings using Python datetime calculations
+                valid_showings = []
                 
-                movie['showings'] = showings
+                for showing in all_showings:
+                    # Calculate show start time
+                    show_date = showing['date']
+                    start_time = showing['starttime']
+                    duration = movie['duration']
+                    
+                    # Convert starttime to seconds if it's a timedelta
+                    if hasattr(start_time, 'total_seconds'):
+                        start_seconds = int(start_time.total_seconds())
+                    else:
+                        start_seconds = int(start_time)
+                    
+                    # Calculate show start datetime
+                    start_hour = start_seconds // 3600
+                    start_minute = (start_seconds % 3600) // 60
+                    start_second = start_seconds % 60
+                    
+                    show_start = datetime.combine(show_date, datetime.min.time().replace(
+                        hour=start_hour, minute=start_minute, second=start_second
+                    ))
+                    
+                    # Calculate show end time
+                    show_end = show_start + timedelta(minutes=duration)
+                    
+                    # Only include showing if it hasn't ended yet
+                    if show_end >= current_time:
+                        # Convert timedelta objects to total seconds for JSON serialization
+                        if hasattr(showing['starttime'], 'total_seconds'):
+                            showing['starttime'] = showing['starttime'].total_seconds()
+                        valid_showings.append(showing)
+                
+                # Only include movie if it has at least one valid showing
+                if valid_showings:
+                    movie['showings'] = valid_showings
+                    movies_with_valid_showings.append(movie)
             
-            return movies
+            print(f"DEBUG: Total movies with non-expired showings: {len(movies_with_valid_showings)}")
+            
+            return movies_with_valid_showings
         finally:
             cursor.close()
 
 @handle_db_errors(default_return=[])
 def get_movies_with_showings_by_date(target_date):
-    """Get movies that have showings on a specific date"""
+    """Get movies that have non-expired showings on a specific date"""
     with get_db_connection() as conn:
         cursor = conn.cursor(dictionary=True)
         
         try:
+            from datetime import datetime, timedelta
+            current_time = datetime.now()
+            
             # Get movies that have showings on the target date
             cursor.execute("""
                 SELECT DISTINCT m.* 
@@ -139,7 +181,9 @@ def get_movies_with_showings_by_date(target_date):
             """, (target_date,))
             movies = cursor.fetchall()
             
-            # For each movie, get its showings for the target date
+            # For each movie, get its non-expired showings for the target date
+            movies_with_valid_showings = []
+            
             for movie in movies:
                 cursor.execute("""
                     SELECT id, date, starttime, baseprice, room_id 
@@ -147,16 +191,52 @@ def get_movies_with_showings_by_date(target_date):
                     WHERE movie_id = %s AND DATE(date) = %s
                     ORDER BY starttime
                 """, (movie['id'], target_date))
-                showings = cursor.fetchall()
+                all_showings = cursor.fetchall()
                 
-                # Convert timedelta objects to total seconds for JSON serialization
-                for showing in showings:
-                    if hasattr(showing['starttime'], 'total_seconds'):
-                        showing['starttime'] = showing['starttime'].total_seconds()
+                # Filter out expired showings using Python datetime calculations
+                valid_showings = []
                 
-                movie['showings'] = showings
+                for showing in all_showings:
+                    # Calculate show start time
+                    show_date = showing['date']
+                    start_time = showing['starttime']
+                    duration = movie['duration']
+                    
+                    # Convert starttime to seconds if it's a timedelta
+                    if hasattr(start_time, 'total_seconds'):
+                        start_seconds = int(start_time.total_seconds())
+                    else:
+                        start_seconds = int(start_time)
+                    
+                    # Calculate show start datetime
+                    start_hour = start_seconds // 3600
+                    start_minute = (start_seconds % 3600) // 60
+                    start_second = start_seconds % 60
+                    
+                    show_start = datetime.combine(show_date, datetime.min.time().replace(
+                        hour=start_hour, minute=start_minute, second=start_second
+                    ))
+                    
+                    # Calculate show end time
+                    show_end = show_start + timedelta(minutes=duration)
+                    
+                    # Only include showing if it hasn't ended yet
+                    if show_end >= current_time:
+                        # Convert timedelta objects to total seconds for JSON serialization
+                        if hasattr(showing['starttime'], 'total_seconds'):
+                            showing['starttime'] = showing['starttime'].total_seconds()
+                        valid_showings.append(showing)
+                
+                # Only include movie if it has at least one valid showing
+                if valid_showings:
+                    movie['showings'] = valid_showings
+                    movies_with_valid_showings.append(movie)
             
-            return movies
+            print(f"DEBUG: Movies with non-expired showings on {target_date}: {len(movies_with_valid_showings)}")
+            for movie in movies_with_valid_showings:
+                print(f"  - {movie['name']}: {len(movie['showings'])} showings")
+            
+            return movies_with_valid_showings
         finally:
             cursor.close()
 
@@ -371,39 +451,82 @@ def get_bookings_by_account_id(account_id, expired=False):
         cursor = conn.cursor(dictionary=True)
         
         try:
-            # Calculate showing end time and filter based on current datetime
-            if expired:
-                # Get only expired tickets (showing end time is before now)
-                where_clause = "AND DATE_ADD(TIMESTAMP(s.date, SEC_TO_TIME(s.starttime)), INTERVAL m.duration MINUTE) < NOW()"
-            else:
-                # Get only non-expired tickets (showing end time is after now)
-                where_clause = "AND DATE_ADD(TIMESTAMP(s.date, SEC_TO_TIME(s.starttime)), INTERVAL m.duration MINUTE) >= NOW()"
-            
-            cursor.execute(f"""
+            # Get all bookings first, then filter in Python for accurate timezone handling
+            cursor.execute("""
                 SELECT b.id, b.price, b.account_id, b.showing_id,
                        s.date, s.starttime, s.baseprice,
                        m.name as movie_name, m.duration,
                        r.name as room_name,
-                       COUNT(c.id) as num_spectators,
-                       DATE_ADD(TIMESTAMP(s.date, SEC_TO_TIME(s.starttime)), INTERVAL m.duration MINUTE) as showing_end_time
+                       COUNT(c.id) as num_spectators
                 FROM booking b
                 JOIN showing s ON b.showing_id = s.id
                 JOIN movie m ON s.movie_id = m.id
                 JOIN room r ON s.room_id = r.id
                 LEFT JOIN customer c ON b.id = c.booking_id
                 WHERE b.account_id = %s
-                {where_clause}
                 GROUP BY b.id, b.price, b.account_id, b.showing_id, s.date, s.starttime, s.baseprice, m.name, m.duration, r.name
                 ORDER BY s.date DESC, s.starttime DESC
             """, (account_id,))
             
-            bookings = cursor.fetchall()
+            all_bookings = cursor.fetchall()
+            
+            # Filter bookings using Python datetime calculations for accuracy
+            from datetime import datetime, timedelta
+            current_time = datetime.now()
+            
+            print(f"DEBUG: Total bookings found: {len(all_bookings)}")
+            print(f"DEBUG: Current Python time: {current_time}")
+            
+            filtered_bookings = []
+            
+            for booking in all_bookings:
+                # Calculate show start time
+                show_date = booking['date']
+                start_time = booking['starttime']
+                duration = booking['duration']
+                
+                # Convert starttime to seconds if it's a timedelta
+                if hasattr(start_time, 'total_seconds'):
+                    start_seconds = int(start_time.total_seconds())
+                else:
+                    start_seconds = int(start_time)
+                
+                # Calculate show start datetime
+                start_hour = start_seconds // 3600
+                start_minute = (start_seconds % 3600) // 60
+                start_second = start_seconds % 60
+                
+                show_start = datetime.combine(show_date, datetime.min.time().replace(
+                    hour=start_hour, minute=start_minute, second=start_second
+                ))
+                
+                # Calculate show end time
+                show_end = show_start + timedelta(minutes=duration)
+                
+                # Determine if expired
+                is_expired = show_end < current_time
+                
+                print(f"DEBUG: Booking {booking['id']} - Movie: {booking['movie_name']}")
+                print(f"  Show date: {show_date}, Start time: {start_hour:02d}:{start_minute:02d}, Duration: {duration} min")
+                print(f"  Show start: {show_start}")
+                print(f"  Show end: {show_end}")
+                print(f"  Current time: {current_time}")
+                print(f"  Is expired: {is_expired}")
+                print("---")
+                
+                # Filter based on expired parameter
+                if expired and is_expired:
+                    filtered_bookings.append(booking)
+                elif not expired and not is_expired:
+                    filtered_bookings.append(booking)
+            
+            print(f"DEBUG: Filtered bookings ({'expired' if expired else 'current'}): {len(filtered_bookings)}")
             
             # Convert timedelta objects to total seconds for display
-            for booking in bookings:
+            for booking in filtered_bookings:
                 if hasattr(booking['starttime'], 'total_seconds'):
                     booking['starttime'] = booking['starttime'].total_seconds()
                     
-            return bookings
+            return filtered_bookings
         finally:
             cursor.close()
