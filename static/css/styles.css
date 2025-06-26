@@ -863,4 +863,70 @@ h2 {
   z-index: 1000;
 }
 
-/* Showing time buttons */
+/* ================================
+   BOOKING PAGES STYLES
+   ================================ */
+
+/* Booking page layout */
+.booking-page {
+  background-color: #f8f9fa;
+  min-height: 100vh;
+}
+
+.booking-header {
+  background-color: white;
+  border-bottom: 1px solid #dee2e6;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.booking-main {
+  padding-bottom: 2rem;
+}
+
+/* Booking progress indicator */
+.booking-progress {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #6c757d;
+}
+
+.booking-progress .step {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  background-color: #e9ecef;
+  color: #6c757d;
+}
+
+.booking-progress .step.active {
+  background-color: #0d6efd;
+  color: white;
+}
+
+.booking-progress .step.completed {
+  background-color: #198754;
+  color: white;
+}
+
+/* Clean container for booking */
+.booking-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+/* Responsive adjustments for booking pages */
+@media (max-width: 768px) {
+  .booking-header h4 {
+    font-size: 1.1rem;
+  }
+  
+  .booking-progress {
+    display: none; /* Hide progress on mobile to save space */
+  }
+  
+  .booking-container {
+    padding: 0.5rem;
+  }
+}
