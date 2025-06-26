@@ -104,101 +104,69 @@
           </h5>
         </div>
         <div class="card-body">
-            </div>
-            <div class="col-md-6">
-              <div class="showing-details">
-                <p class="mb-2">
-                  <i class="fas fa-calendar me-2"></i>
-                  <strong>Date:</strong> {{ booking.date.strftime('%A, %B %d, %Y') }}
-                </p>
-                <p class="mb-2">
-                  <i class="fas fa-clock me-2"></i>
-                  <strong>Time:</strong> {{ booking.starttime|seconds_to_time }}
-                </p>
-                <p class="mb-2">
-                  <i class="fas fa-euro-sign me-2"></i>
-                  <strong>Total Price:</strong> €{{ "%.2f"|format(booking.price) }}
-                </p>
+          <!-- Spectator Information -->
+          <div class="mb-4">
+            <h6 class="mb-3">
+              <i class="fas fa-users me-2"></i>
+              Spectator Information
+            </h6>
+            {% if customers %}
+              <div class="table-responsive">
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th>Seat</th>
+                      <th>Name</th>
+                      <th>Age</th>
+                      <th>Special Needs</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for customer in customers %}
+                      <tr>
+                        <td>
+                          <span class="badge bg-primary">
+                            {{ customer.seat_row }}{{ customer.seat_column }}
+                          </span>
+                        </td>
+                        <td>{{ customer.firstname }} {{ customer.lastname }}</td>
+                        <td>{{ customer.age }} years</td>
+                        <td>
+                          {% if customer.pmr %}
+                            <span class="badge bg-warning">PMR</span>
+                          {% else %}
+                            <span class="text-muted">None</span>
+                          {% endif %}
+                        </td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
               </div>
-            </div>
+            {% else %}
+              <p class="text-muted">No spectator information available.</p>
+            {% endif %}
+          </div>
+
+          <!-- Important Information -->
+          <div class="alert alert-warning">
+            <h6 class="mb-2">
+              <i class="fas fa-info-circle me-2"></i>
+              Important Information
+            </h6>
+            <ul class="mb-0">
+              <li>Please arrive at the cinema at least 15 minutes before showtime.</li>
+              <li>Present this booking confirmation at the entrance.</li>
+              <li>Keep your booking ID (#{{ booking.id }}) for reference.</li>
+              <li>Seats are reserved and cannot be changed after booking.</li>
+              <li>For any issues, contact cinema support with your booking ID.</li>
+            </ul>
           </div>
         </div>
       </div>
     </div>
   </div>
-
-  <!-- Spectator Information -->
-  <div class="row mb-4">
-    <div class="col-12">
-      <div class="card">
-        <div class="card-header bg-info text-white">
-          <h5 class="mb-0">
-            <i class="fas fa-users me-2"></i>
-            Spectator Information
-          </h5>
-        </div>
-        <div class="card-body">
-          {% if customers %}
-            <div class="table-responsive">
-              <table class="table table-striped">
-                <thead>
-                  <tr>
-                    <th>Seat</th>
-                    <th>Name</th>
-                    <th>Age</th>
-                    <th>Special Needs</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for customer in customers %}
-                    <tr>
-                      <td>
-                        <span class="badge bg-primary">
-                          {{ customer.seat_row }}{{ customer.seat_column }}
-                        </span>
-                      </td>
-                      <td>{{ customer.firstname }} {{ customer.lastname }}</td>
-                      <td>{{ customer.age }} years</td>
-                      <td>
-                        {% if customer.pmr %}
-                          <span class="badge bg-warning">PMR</span>
-                        {% else %}
-                          <span class="text-muted">None</span>
-                        {% endif %}
-                      </td>
-                    </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
-          {% else %}
-            <p class="text-muted">No spectator information available.</p>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Instructions -->
-  <div class="row mb-4">
-    <div class="col-12">
-      <div class="card">
-        <div class="card-header bg-warning text-dark">
-          <h5 class="mb-0">
-            <i class="fas fa-info-circle me-2"></i>
-            Important Information
-          </h5>
-        </div>
-        <div class="card-body">
-          <ul class="mb-0">
-            <li>Please arrive at the cinema at least 15 minutes before showtime.</li>
-            <li>Present this booking confirmation at the entrance.</li>
-            <li>Keep your booking ID (#{{ booking.id }}) for reference.</li>
-            <li>Seats are reserved and cannot be changed after booking.</li>
-            <li>For any issues, contact cinema support with your booking ID.</li>
-          </ul>
-        </div>
-      </div>
+</div>
     </div>
         </div>
         </div>
