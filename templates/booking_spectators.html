@@ -126,7 +126,7 @@
                     <div class="seat-badge me-3">
                       {{ selected_seats[i].seat_row }}{{ selected_seats[i].seat_column }}
                       {% if selected_seats[i].type == 'pmr' %}
-                        <i class="fas fa-wheelchair ms-2" style="color: #ffc107;" title="Reduced Mobility Seat"></i>
+                        <i class="fas fa-wheelchair ms-2" style="color: white;" title="Reduced Mobility Seat"></i>
                       {% endif %}
                     </div>
                     <h6 class="mb-0">Spectator {{ i + 1 }}</h6>
@@ -137,13 +137,17 @@
                       <label for="spectator_{{ i }}_first_name" class="form-label">First Name *</label>
                       <input type="text" class="form-control" 
                              id="spectator_{{ i }}_first_name" 
-                             name="spectator_{{ i }}_first_name" required>
+                             name="spectator_{{ i }}_first_name" 
+                             value="{{ current_user.first_name if current_user and i == 0 else '' }}" 
+                             required>
                     </div>
                     <div class="col-md-4 mb-3">
                       <label for="spectator_{{ i }}_last_name" class="form-label">Last Name *</label>
                       <input type="text" class="form-control" 
                              id="spectator_{{ i }}_last_name" 
-                             name="spectator_{{ i }}_last_name" required>
+                             name="spectator_{{ i }}_last_name" 
+                             value="{{ current_user.last_name if current_user and i == 0 else '' }}" 
+                             required>
                     </div>
                     <div class="col-md-4 mb-3">
                       <label for="spectator_{{ i }}_birth_date" class="form-label">Birth Date *</label>
