@@ -125,39 +125,31 @@
                   <div class="d-flex align-items-center mb-3">
                     <div class="seat-badge me-3">
                       {{ selected_seats[i].seat_row }}{{ selected_seats[i].seat_column }}
+                      {% if selected_seats[i].type == 'pmr' %}
+                        <i class="fas fa-wheelchair ms-2" style="color: #ffc107;" title="Reduced Mobility Seat"></i>
+                      {% endif %}
                     </div>
                     <h6 class="mb-0">Spectator {{ i + 1 }}</h6>
                   </div>
                   
                   <div class="row">
-                    <div class="col-md-3 mb-3">
+                    <div class="col-md-4 mb-3">
                       <label for="spectator_{{ i }}_first_name" class="form-label">First Name *</label>
                       <input type="text" class="form-control" 
                              id="spectator_{{ i }}_first_name" 
                              name="spectator_{{ i }}_first_name" required>
                     </div>
-                    <div class="col-md-3 mb-3">
+                    <div class="col-md-4 mb-3">
                       <label for="spectator_{{ i }}_last_name" class="form-label">Last Name *</label>
                       <input type="text" class="form-control" 
                              id="spectator_{{ i }}_last_name" 
                              name="spectator_{{ i }}_last_name" required>
                     </div>
-                    <div class="col-md-3 mb-3">
+                    <div class="col-md-4 mb-3">
                       <label for="spectator_{{ i }}_birth_date" class="form-label">Birth Date *</label>
                       <input type="date" class="form-control" 
                              id="spectator_{{ i }}_birth_date" 
                              name="spectator_{{ i }}_birth_date" required>
-                    </div>
-                    <div class="col-md-3 mb-3">
-                      <div class="form-check mt-4">
-                        <input class="form-check-input" 
-                               type="checkbox" 
-                               id="spectator_{{ i }}_pmr" 
-                               name="spectator_{{ i }}_pmr">
-                        <label class="form-check-label" for="spectator_{{ i }}_pmr">
-                          Person with Reduced Mobility (PMR)
-                        </label>
-                      </div>
                     </div>
                   </div>
                   
@@ -339,25 +331,40 @@ async function updatePrice() {
   const showingId = document.querySelector('input[name="showing_id"]').value;
   const spectators = [];
   
+  // Get seat data from template (passed from backend)
+  const seatData = [
+    {% for seat in selected_seats %}
+      {
+        id: {{ seat.id }},
+        type: "{{ seat.type }}",
+        row: "{{ seat.seat_row }}",
+        column: "{{ seat.seat_column }}"
+      }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ];
+  
   // Collect spectator data
   const spectatorSections = document.querySelectorAll('.spectator-section');
   
   spectatorSections.forEach((section, index) => {
     const birthDateInput = document.getElementById(`spectator_${index}_birth_date`);
-    const pmrInput = document.getElementById(`spectator_${index}_pmr`);
+    
+    // Get PMR status from seat data instead of checkbox
+    const seatType = seatData[index] ? seatData[index].type : 'normal';
+    const isPmr = seatType === 'pmr' ? 1 : 0;
     
     if (birthDateInput.value) {
       // Use actual age if birth date is provided
       const age = calculateAge(birthDateInput.value);
       spectators.push({
         age: age,
-        pmr: pmrInput.checked ? 1 : 0
+        pmr: isPmr
       });
     } else {
       // Default to adult age (25) if no birth date provided
       spectators.push({
         age: 25, // Default adult age
-        pmr: pmrInput.checked ? 1 : 0
+        pmr: isPmr
       });
     }
   });
@@ -428,13 +435,8 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Add event listeners for birth date changes
   const birthDateInputs = document.querySelectorAll('input[type="date"]');
-  const pmrInputs = document.querySelectorAll('input[type="checkbox"]');
   
   birthDateInputs.forEach(input => {
-    input.addEventListener('change', updatePrice);
-  });
-  
-  pmrInputs.forEach(input => {
     input.addEventListener('change', updatePrice);
   });
   

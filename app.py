@@ -553,6 +553,17 @@ def booking_confirm():
         num_spectators = len(selected_seats) if selected_seats else 0
         spectators = []
         
+        # Convert seat IDs to integers first so we can get seat information
+        try:
+            selected_seat_ids = [int(seat_id) for seat_id in selected_seats]
+        except ValueError:
+            flash('Invalid booking data.', 'error')
+            return redirect(url_for('movies'))
+        
+        # Get seat information to determine PMR status
+        all_seats = get_seats_for_showing(showing_id)
+        seat_info_map = {seat['id']: seat for seat in all_seats}
+        
         for i in range(num_spectators):
             # Calculate age from birth date
             birth_date_str = request.form.get(f'spectator_{i}_birth_date')
@@ -564,11 +575,16 @@ def booking_confirm():
             else:
                 age = 0
             
+            # Get PMR status from seat type instead of form checkbox
+            seat_id = selected_seat_ids[i]
+            seat_info = seat_info_map.get(seat_id, {})
+            is_pmr = 1 if seat_info.get('type') == 'pmr' else 0
+            
             spectator = {
                 'firstname': request.form.get(f'spectator_{i}_first_name'),
                 'lastname': request.form.get(f'spectator_{i}_last_name'),
                 'age': age,
-                'pmr': 1 if request.form.get(f'spectator_{i}_pmr') == 'on' else 0
+                'pmr': is_pmr
             }
             spectators.append(spectator)
         
@@ -582,13 +598,6 @@ def booking_confirm():
                 flash(f'Please fill in all information for spectator {i+1}.', 'error')
                 return redirect(url_for('movies'))
         
-        # Convert seat IDs to integers
-        try:
-            selected_seats = [int(seat_id) for seat_id in selected_seats]
-        except ValueError:
-            flash('Invalid booking data.', 'error')
-            return redirect(url_for('movies'))
-        
         # Create the booking - use logged-in user's account_id if available
         from flask import g
         
@@ -600,7 +609,7 @@ def booking_confirm():
             account_id = None
         
         # Use the secure booking function that calculates prices server-side
-        booking_result = create_complete_booking_secure(showing_id, account_id, spectators, selected_seats)
+        booking_result = create_complete_booking_secure(showing_id, account_id, spectators, selected_seat_ids)
         
         if booking_result and booking_result.get('success'):
             booking_id = booking_result['booking_id']
