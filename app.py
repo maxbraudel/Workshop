@@ -1097,5 +1097,5 @@ def set_movies_date_preference():
         return jsonify({'success': False, 'error': 'Server error'})
 
 if __name__ == '__main__':
-    app.run(debug=config.DEBUG, host='0.0.0.0', port=5500)
+    app.run(debug=config.DEBUG, host='0.0.0.0', port=config.PORT)
 

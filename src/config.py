@@ -16,6 +16,7 @@ class Config:
     SECRET_KEY = os.getenv('FLASK_SECRET_KEY', 'your-secret-key-change-this-in-production')
     DEBUG = os.getenv('FLASK_DEBUG', 'False').lower() in ['true', '1', 'yes']
     ENVIRONMENT = os.getenv('FLASK_ENV', 'development')
+    PORT = int(os.getenv('FLASK_PORT', 5000))
     
     # Database Configuration
     DB_HOST = os.getenv('DB_HOST', 'localhost')
