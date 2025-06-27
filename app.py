@@ -750,9 +750,41 @@ def booking_confirm():
                     # Add customer count to booking data
                     booking_data['num_spectators'] = len(customers)
                     
+                    # Get proper booker information using correct field names
+                    booker_name = f"{booking_data.get('booker_first_name', '')} {booking_data.get('booker_last_name', '')}".strip()
+                    booker_email_data = booking_data.get('booker_email', '')
+                    
+                    # Final fallback
+                    if not booker_name:
+                        booker_name = "Anonymous User"
+                    if not booker_email_data:
+                        booker_email_data = "N/A"
+                    
+                    # Convert booking and customers to dictionaries for PDF generator (same as website routes)
+                    booking_data_pdf = {
+                        'id': booking_data['id'],
+                        'movie_name': booking_data['movie_name'],
+                        'room_name': booking_data['room_name'],
+                        'date': booking_data['date'],
+                        'starttime': booking_data['starttime'],
+                        'duration': booking_data['duration'],
+                        'price': booking_data['price'],
+                        'booker_name': booker_name,
+                        'booker_email': booker_email_data
+                    }
+                    
+                    tickets_data = []
+                    for customer in customers:
+                        tickets_data.append({
+                            'id': customer.get('id', 'N/A'),
+                            'seat_number': f"{customer.get('seat_row', '')}{customer.get('seat_column', '')}",
+                            'seat_type': customer.get('seat_type', 'Standard'),
+                            'price': booking_data['price'] / len(customers) if customers else 0  # Divide total price
+                        })
+                    
                     # Generate PDF content for email attachment
                     pdf_generator = create_pdf_generator()
-                    pdf_buffer = pdf_generator.generate_booking_pdf(booking_data, customers)
+                    pdf_buffer = pdf_generator.generate_booking_pdf(booking_data_pdf, tickets_data)
                     
                     # Extract bytes from BytesIO buffer
                     pdf_content = pdf_buffer.getvalue()
@@ -760,7 +792,7 @@ def booking_confirm():
                     # Send email with PDF attachment
                     booker_full_name = f"{booker_first_name} {booker_last_name}"
                     email_sent = send_booking_confirmation_email(
-                        booking_data=booking_data,
+                        booking_data=booking_data_pdf,
                         pdf_content=pdf_content,
                         booker_email=booker_email,
                         booker_name=booker_full_name
