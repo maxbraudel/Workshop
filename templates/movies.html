@@ -45,9 +45,9 @@
                 <div class="card movie-card h-100">
                     <div class="card-body p-3">
                         <!-- Top Section: Poster + Movie Info -->
-                        <div class="d-flex flex-row mb-3">
+                        <div class="d-flex flex-row mb-3" style="min-height: 180px;">
                             <!-- Movie Poster -->
-                            <div class="movie-poster-container" style="flex: 0 0 120px; height: 180px;">
+                            <div class="movie-poster-container align-self-stretch" style="flex: 0 0 120px; max-width: 120px;">
                                 {% if movie.poster %}
                                 <img src="{{ url_for('serve_poster', poster_id=movie.poster.id) }}" 
                                         alt="{{ movie.name }} poster" 
@@ -468,9 +468,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="card movie-card h-100">
                         <div class="card-body p-3">
                             <!-- Top Section: Poster + Movie Info -->
-                            <div class="d-flex flex-row mb-3">
+                            <div class="d-flex flex-row mb-3" style="min-height: 180px;">
                                 <!-- Movie Poster -->
-                                <div class="movie-poster-container" style="flex: 0 0 120px; height: 180px;">
+                                <div class="movie-poster-container align-self-stretch" style="flex: 0 0 120px; max-width: 120px;">
                                     ${posterHTML}
                                 </div>
                                 
