@@ -148,10 +148,14 @@
 <!-- Sticky Bottom Navigation -->
 <div class="sticky-bottom-nav">
   <div class="sticky-nav-buttons">
-    <button onclick="window.print()" class="sticky-nav-btn btn-outline-secondary">
+    <a href="{{ url_for('print_booking_tickets', booking_id=booking.id) }}" 
+       class="sticky-nav-btn btn-outline-secondary"
+       target="_blank"
+       onclick="printTickets(this.href); return false;"
+       title="Print professional PDF tickets">
       <i class="fas fa-print me-2"></i>
       Print Tickets
-    </button>
+    </a>
     <a href="{{ url_for('download_booking_pdf', booking_id=booking.id) }}" class="sticky-nav-btn btn-success">
       <i class="fas fa-download me-2"></i>
       Download PDF
@@ -162,6 +166,31 @@
     </a>
   </div>
 </div>
+
+<script>
+function printTickets(url) {
+  // Open PDF in new window
+  const printWindow = window.open(url, '_blank', 'width=800,height=600');
+  
+  // Wait for PDF to load, then trigger print
+  if (printWindow) {
+    printWindow.onload = function() {
+      setTimeout(function() {
+        printWindow.print();
+      }, 1000); // Give PDF time to render
+    };
+    
+    // Fallback: try to print after a delay even if onload doesn't fire
+    setTimeout(function() {
+      try {
+        printWindow.print();
+      } catch (e) {
+        console.log('Auto-print failed, user can manually print');
+      }
+    }, 2000);
+  }
+}
+</script>
 
 <style>
 .progress-container {
