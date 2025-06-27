@@ -72,7 +72,7 @@ def booking_login_required(f):
             # Store the current booking URL as the last non-auth page for redirect after login
             from flask import request, session
             session['last_non_auth_page'] = request.url
-            flash('You must be logged in to buy a ticket.', 'error')
+            flash('You must be logged in to buy a ticket.', 'info')
             return redirect(url_for('login'))
         return f(*args, **kwargs)
     return decorated_function
