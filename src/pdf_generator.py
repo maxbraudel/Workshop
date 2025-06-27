@@ -99,9 +99,18 @@ class TicketPDFGenerator:
             BytesIO: PDF file as bytes
         """
         buffer = BytesIO()
+        
+        # Get booker name for document title
+        booker_name = booking_data.get('booker_name', 'Anonymous User')
+        
+        # Create document with metadata
         doc = SimpleDocTemplate(buffer, pagesize=A4, 
                                rightMargin=0.75*inch, leftMargin=0.75*inch,
-                               topMargin=1*inch, bottomMargin=1*inch)
+                               topMargin=1*inch, bottomMargin=1*inch,
+                               title=f"{booker_name} - Tickets",
+                               author="Cinemacousas",
+                               subject=f"Movie Tickets for {booking_data.get('movie_name', 'Movie')}",
+                               creator="Cinemacousas Booking System")
         
         story = []
         
@@ -228,7 +237,16 @@ class TicketPDFGenerator:
     def generate_single_ticket_pdf(self, ticket_data: Dict[str, Any], booking_data: Dict[str, Any]) -> BytesIO:
         """Generate a PDF for a single ticket"""
         buffer = BytesIO()
-        doc = SimpleDocTemplate(buffer, pagesize=A4)
+        
+        # Get booker name for document title
+        booker_name = booking_data.get('booker_name', 'Anonymous User')
+        
+        # Create document with metadata
+        doc = SimpleDocTemplate(buffer, pagesize=A4,
+                               title=f"{booker_name} - Ticket",
+                               author="Cinemacousas",
+                               subject=f"Movie Ticket for {booking_data.get('movie_name', 'Movie')}",
+                               creator="Cinemacousas Booking System")
         
         story = []
         

@@ -743,6 +743,23 @@ def download_booking_pdf(booking_id):
         # Get customers/spectators for this booking
         customers = get_customers_for_booking(booking_id)
         
+        # Get proper booker information
+        from flask import g
+        booker_name = f"{booking.get('first_name', '')} {booking.get('last_name', '')}".strip()
+        booker_email = booking.get('email', '')
+        
+        # Fall back to current user if booking doesn't have booker info
+        if not booker_name and hasattr(g, 'current_user') and g.current_user:
+            booker_name = f"{g.current_user.get('first_name', '')} {g.current_user.get('last_name', '')}".strip()
+            if not booker_email:
+                booker_email = g.current_user.get('email', '')
+        
+        # Final fallback
+        if not booker_name:
+            booker_name = "Anonymous User"
+        if not booker_email:
+            booker_email = "N/A"
+        
         # Convert booking and customers to dictionaries for PDF generator
         booking_data = {
             'id': booking['id'],
@@ -752,8 +769,8 @@ def download_booking_pdf(booking_id):
             'starttime': booking['starttime'],
             'duration': booking['duration'],
             'price': booking['price'],
-            'booker_name': f"{booking.get('first_name', '')} {booking.get('last_name', '')}".strip(),
-            'booker_email': booking.get('email', 'N/A')
+            'booker_name': booker_name,
+            'booker_email': booker_email
         }
         
         tickets_data = []
@@ -784,16 +801,20 @@ def download_booking_pdf(booking_id):
         pdf_generator = create_pdf_generator()
         pdf_buffer = pdf_generator.generate_booking_pdf(booking_data, tickets_data, include_expired=is_expired)
         
+        # Create safe filename from booker name
+        safe_name = "".join(c for c in booker_name if c.isalnum() or c in (' ', '-', '_')).rstrip()
+        safe_name = safe_name.replace(' ', '_') if safe_name else "User"
+        
         # Create response
         response = make_response(pdf_buffer.getvalue())
         response.headers['Content-Type'] = 'application/pdf'
         
         if print_mode:
-            # For printing: display inline and add auto-print script
-            response.headers['Content-Disposition'] = f'inline; filename="booking_{booking_id}_tickets.pdf"'
+            # For printing: display inline with username in title
+            response.headers['Content-Disposition'] = f'inline; filename="{safe_name}_Tickets.pdf"'
         else:
-            # For downloading: force download
-            response.headers['Content-Disposition'] = f'attachment; filename="booking_{booking_id}_tickets.pdf"'
+            # For downloading: force download with username in filename
+            response.headers['Content-Disposition'] = f'attachment; filename="{safe_name}_Tickets_Booking_{booking_id}.pdf"'
         
         return response
         
@@ -835,6 +856,23 @@ def print_booking_tickets(booking_id):
         # Get customers/spectators for this booking
         customers = get_customers_for_booking(booking_id)
         
+        # Get proper booker information
+        from flask import g
+        booker_name = f"{booking.get('first_name', '')} {booking.get('last_name', '')}".strip()
+        booker_email = booking.get('email', '')
+        
+        # Fall back to current user if booking doesn't have booker info
+        if not booker_name and hasattr(g, 'current_user') and g.current_user:
+            booker_name = f"{g.current_user.get('first_name', '')} {g.current_user.get('last_name', '')}".strip()
+            if not booker_email:
+                booker_email = g.current_user.get('email', '')
+        
+        # Final fallback
+        if not booker_name:
+            booker_name = "Anonymous User"
+        if not booker_email:
+            booker_email = "N/A"
+        
         # Convert booking and customers to dictionaries for PDF generator
         booking_data = {
             'id': booking['id'],
@@ -844,8 +882,8 @@ def print_booking_tickets(booking_id):
             'starttime': booking['starttime'],
             'duration': booking['duration'],
             'price': booking['price'],
-            'booker_name': f"{booking.get('first_name', '')} {booking.get('last_name', '')}".strip(),
-            'booker_email': booking.get('email', 'N/A')
+            'booker_name': booker_name,
+            'booker_email': booker_email
         }
         
         tickets_data = []
@@ -876,10 +914,14 @@ def print_booking_tickets(booking_id):
         pdf_generator = create_pdf_generator()
         pdf_buffer = pdf_generator.generate_booking_pdf(booking_data, tickets_data, include_expired=is_expired)
         
+        # Create safe filename from booker name
+        safe_name = "".join(c for c in booker_name if c.isalnum() or c in (' ', '-', '_')).rstrip()
+        safe_name = safe_name.replace(' ', '_') if safe_name else "User"
+        
         # Return PDF for inline viewing (will trigger browser print)
         response = make_response(pdf_buffer.getvalue())
         response.headers['Content-Type'] = 'application/pdf'
-        response.headers['Content-Disposition'] = f'inline; filename="booking_{booking_id}_tickets.pdf"'
+        response.headers['Content-Disposition'] = f'inline; filename="{safe_name}_Tickets.pdf"'
         response.headers['X-Auto-Print'] = 'true'  # Custom header for our use
         
         return response
