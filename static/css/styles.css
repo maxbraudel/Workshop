@@ -80,13 +80,12 @@ body {
 .navbar-brand {
   font-weight: bold;
   color: var(--primary-color) !important;
-  transition: var(--transition-fast);
   text-decoration: none !important;
+  outline: none !important;
 }
 
 .navbar-brand:hover {
   color: var(--primary-hover) !important;
-  transform: scale(1.05);
 }
 
 .navbar-brand h4 {

@@ -141,6 +141,45 @@
   <div id="selectedSeatsInputs"></div>
 </form>
 
+<!-- PMR Confirmation Modal -->
+<div class="modal fade" id="pmrConfirmationModal" tabindex="-1" aria-labelledby="pmrConfirmationModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="pmrConfirmationModalLabel">
+          <i class="fas fa-wheelchair me-2 text-info"></i>
+          PMR Seat Selection
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-info">
+          <i class="fas fa-info-circle me-2"></i>
+          You have selected a seat reserved for people with reduced mobility (PMR).
+        </div>
+        <p>This seat is specifically designed and reserved for individuals with mobility disabilities to ensure better accessibility and comfort.</p>
+        
+        <div class="form-check mt-3">
+          <input class="form-check-input" type="checkbox" id="pmrCertification">
+          <label class="form-check-label" for="pmrCertification">
+            I certify that I have a mobility disability and require this accessible seat.
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <i class="fas fa-times me-2"></i>
+          Cancel
+        </button>
+        <button type="button" class="btn btn-primary" id="confirmPMRSelection" disabled>
+          <i class="fas fa-check me-2"></i>
+          Confirm Selection
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <style>
 /* Continue button specific styling */
 #continueBtn:disabled {
@@ -178,7 +217,14 @@ function toggleSeat(seatElement) {
     seatElement.classList.remove('selected');
     selectedSeats = selectedSeats.filter(seat => seat.id !== seatId);
   } else {
-    // Select seat
+    // Check if this is a PMR seat before selecting
+    if (seatType === 'pmr') {
+      // Show PMR confirmation popup
+      showPMRConfirmationPopup(seatElement, seatId, seatRow, seatColumn, seatType);
+      return;
+    }
+    
+    // Select normal seat
     console.log('Selecting seat:', seatId);
     seatElement.classList.add('selected');
     selectedSeats.push({
@@ -226,6 +272,23 @@ function updateSelectedSummary() {
       `<input type="hidden" name="selected_seats" value="${seat.id}">`
     ).join('');
   }
+}
+
+function showPMRConfirmationPopup(seatElement, seatId, seatRow, seatColumn, seatType) {
+  // Store seat information for later use
+  const modal = document.getElementById('pmrConfirmationModal');
+  modal.seatElement = seatElement;
+  modal.seatData = { seatId, seatRow, seatColumn, seatType };
+  
+  // Reset checkbox and button state
+  const checkbox = document.getElementById('pmrCertification');
+  const confirmBtn = document.getElementById('confirmPMRSelection');
+  checkbox.checked = false;
+  confirmBtn.disabled = true;
+  
+  // Show the modal
+  const bootstrapModal = new bootstrap.Modal(modal);
+  bootstrapModal.show();
 }
 
 function generateSeatGrid() {
@@ -317,6 +380,49 @@ document.addEventListener('DOMContentLoaded', function() {
   console.log('DOM Content Loaded - initializing seat selection');
   generateSeatGrid();
   updateSelectedSummary();
+  
+  // PMR Modal Event Listeners
+  const pmrCheckbox = document.getElementById('pmrCertification');
+  const confirmPMRBtn = document.getElementById('confirmPMRSelection');
+  const pmrModal = document.getElementById('pmrConfirmationModal');
+  
+  // Enable/disable confirm button based on checkbox
+  pmrCheckbox.addEventListener('change', function() {
+    confirmPMRBtn.disabled = !this.checked;
+  });
+  
+  // Handle PMR seat confirmation
+  confirmPMRBtn.addEventListener('click', function() {
+    const seatElement = pmrModal.seatElement;
+    const seatData = pmrModal.seatData;
+    
+    if (seatElement && seatData) {
+      // Select the PMR seat
+      console.log('Confirming PMR seat selection:', seatData.seatId);
+      seatElement.classList.add('selected');
+      selectedSeats.push({
+        id: seatData.seatId,
+        row: seatData.seatRow,
+        column: seatData.seatColumn,
+        type: seatData.seatType,
+        label: `${seatData.seatRow}${seatData.seatColumn}`
+      });
+      
+      updateSelectedSummary();
+    }
+    
+    // Close modal
+    const bootstrapModal = bootstrap.Modal.getInstance(pmrModal);
+    bootstrapModal.hide();
+  });
+  
+  // Handle modal close - reset checkbox when modal is hidden
+  pmrModal.addEventListener('hidden.bs.modal', function() {
+    const checkbox = document.getElementById('pmrCertification');
+    const confirmBtn = document.getElementById('confirmPMRSelection');
+    checkbox.checked = false;
+    confirmBtn.disabled = true;
+  });
 });
 </script>
 {% endblock %}
