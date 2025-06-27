@@ -1,9 +1,10 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, abort
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, abort, send_file, make_response
 from src.config import get_config
 from src.session_manager import init_session_manager
 from src.middleware import init_middleware, login_required, logout_required, booking_login_required
 from src.error_handlers import init_error_handlers
 from src.logging_config import init_logging
+from src.pdf_generator import create_pdf_generator
 from src.database import (
     test_database_connection,
     authenticate_user,
@@ -725,73 +726,91 @@ def booking_tickets(booking_id):
         print(f"Booking tickets error: {e}")
         return redirect(url_for('movies'))
 
-@app.route('/my-tickets')
-@login_required
-def my_tickets():
-    """Display user's non-expired booking history"""
+@app.route('/booking/<int:booking_id>/pdf')
+@booking_login_required
+def download_booking_pdf(booking_id):
+    """Download booking confirmation and tickets as PDF"""
     try:
-        from flask import g
+        # Get booking details
+        booking = get_booking_by_id(booking_id)
+        if not booking:
+            flash('Booking not found.', 'error')
+            return redirect(url_for('movies'))
         
-        # Get user ID from g.current_user (set by middleware)
-        if not hasattr(g, 'current_user') or not g.current_user:
-            flash('Session error. Please log in again.', 'error')
-            return redirect(url_for('login'))
+        # Get customers/spectators for this booking
+        customers = get_customers_for_booking(booking_id)
         
-        user_id = g.current_user['id']
+        # Convert booking and customers to dictionaries for PDF generator
+        booking_data = {
+            'id': booking['id'],
+            'movie_name': booking['movie_name'],
+            'room_name': booking['room_name'],
+            'date': booking['date'],
+            'starttime': booking['starttime'],
+            'duration': booking['duration'],
+            'price': booking['price'],
+            'booker_name': f"{booking.get('first_name', '')} {booking.get('last_name', '')}".strip(),
+            'booker_email': booking.get('email', 'N/A')
+        }
         
-        # Get only non-expired bookings for this user
-        bookings = get_bookings_by_account_id(user_id, expired=False)
+        tickets_data = []
+        for customer in customers:
+            tickets_data.append({
+                'id': customer.get('id', 'N/A'),
+                'seat_number': f"{customer.get('seat_row', '')}{customer.get('seat_column', '')}",
+                'seat_type': customer.get('seat_type', 'Standard'),
+                'price': booking['price'] / len(customers) if customers else 0  # Divide total price
+            })
         
-        # Add today's date for comparison in template
-        from datetime import date
-        today = date.today()
+        # Check if booking is expired
+        from datetime import datetime, date, timedelta
+        is_expired = False
+        try:
+            booking_date = booking['date']
+            if isinstance(booking_date, str):
+                booking_date = datetime.strptime(booking_date, '%Y-%m-%d').date()
+            elif hasattr(booking_date, 'date'):
+                booking_date = booking_date.date()
+            
+            booking_datetime = datetime.combine(booking_date, datetime.min.time()) + timedelta(seconds=booking['starttime'])
+            is_expired = booking_datetime < datetime.now()
+        except:
+            pass
         
-        # Ensure all booking dates are date objects for proper comparison
-        for booking in bookings:
-            if hasattr(booking['date'], 'date'):
-                # If it's a datetime object, extract the date part
-                booking['date'] = booking['date'].date()
+        # Generate PDF
+        pdf_generator = create_pdf_generator()
+        pdf_buffer = pdf_generator.generate_booking_pdf(booking_data, tickets_data, include_expired=is_expired)
         
-        return render_template('my_tickets.html', bookings=bookings, today=today)
-    
+        # Create response
+        response = make_response(pdf_buffer.getvalue())
+        response.headers['Content-Type'] = 'application/pdf'
+        response.headers['Content-Disposition'] = f'attachment; filename="booking_{booking_id}_tickets.pdf"'
+        
+        return response
+        
     except Exception as e:
-        flash('Server unavailable, please try again later.', 'error')
-        print(f"My tickets error: {e}")
-        return redirect(url_for('index'))
+        flash('Unable to generate PDF. Please try again later.', 'error')
+        print(f"PDF generation error: {e}")
+        return redirect(url_for('booking_tickets', booking_id=booking_id))
 
-@app.route('/expired-tickets')
-@login_required
-def expired_tickets():
-    """Display user's expired booking history"""
+@app.route('/ticket/<int:customer_id>/pdf')
+@booking_login_required  
+def download_single_ticket_pdf(customer_id):
+    """Download a single ticket as PDF"""
     try:
-        from flask import g
+        # Get customer/ticket details - we need to get this from booking
+        # For now, redirect to full booking PDF
+        # This would need a separate database function to get customer by ID
+        flash('Single ticket PDF not implemented yet. Download full booking instead.', 'info')
         
-        # Get user ID from g.current_user (set by middleware)
-        if not hasattr(g, 'current_user') or not g.current_user:
-            flash('Session error. Please log in again.', 'error')
-            return redirect(url_for('login'))
+        # We'd need the booking_id to redirect properly
+        # For now, redirect to my-tickets
+        return redirect(url_for('my_tickets'))
         
-        user_id = g.current_user['id']
-        
-        # Get only expired bookings for this user
-        bookings = get_bookings_by_account_id(user_id, expired=True)
-        
-        # Add today's date for comparison in template
-        from datetime import date
-        today = date.today()
-        
-        # Ensure all booking dates are date objects for proper comparison
-        for booking in bookings:
-            if hasattr(booking['date'], 'date'):
-                # If it's a datetime object, extract the date part
-                booking['date'] = booking['date'].date()
-        
-        return render_template('expired_tickets.html', bookings=bookings, today=today)
-    
     except Exception as e:
-        flash('Server unavailable, please try again later.', 'error')
-        print(f"Expired tickets error: {e}")
-        return redirect(url_for('index'))
+        flash('Unable to generate ticket PDF. Please try again later.', 'error')
+        print(f"Single ticket PDF error: {e}")
+        return redirect(url_for('my_tickets'))
 
 # Helper function to check if a URL is an authentication page
 def is_auth_page(url):

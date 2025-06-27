@@ -590,21 +590,68 @@ h2 {
    PRINT STYLES
    ================================ */
 @media print {
+  /* Hide navigation and UI elements when printing */
   .navbar,
+  .nav,
   .dropdown,
-  .btn,
-  .alert {
+  .dropdown-menu,
+  .toast,
+  .alert:not(.alert-info), /* Keep ticket info alerts when printing */
+  .btn:not(.btn-print), /* Allow print buttons if they exist */
+  .back-link,
+  .breadcrumb,
+  .footer,
+  .sidebar {
     display: none !important;
   }
   
+  /* Ensure clean print layout */
   body {
     color: black !important;
     background: white !important;
+    font-size: 12pt !important;
+    line-height: 1.4 !important;
+    margin: 0 !important;
+    padding: 0.5in !important;
   }
   
+  /* Clean up cards for printing */
   .card {
-    border: 1px solid #ddd !important;
+    border: 1px solid #333 !important;
     box-shadow: none !important;
+    margin-bottom: 1rem !important;
+    page-break-inside: avoid !important;
+  }
+  
+  .card-header {
+    background: white !important;
+    border-bottom: 1px solid #333 !important;
+  }
+  
+  /* Ensure ticket information is clearly visible */
+  .ticket-card {
+    border: 2px solid #333 !important;
+    margin-bottom: 1.5rem !important;
+  }
+  
+  /* Hide decorative elements */
+  .badge,
+  .spinner-border,
+  .btn-close {
+    display: none !important;
+  }
+  
+  /* Ensure text is readable */
+  h1, h2, h3, h4, h5, h6 {
+    color: black !important;
+    page-break-after: avoid !important;
+  }
+  
+  /* Prevent page breaks within important elements */
+  .movie-info,
+  .showing-info,
+  .seat-info {
+    page-break-inside: avoid !important;
   }
 }
 

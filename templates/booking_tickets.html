@@ -152,6 +152,10 @@
       <i class="fas fa-print me-2"></i>
       Print Tickets
     </button>
+    <a href="{{ url_for('download_booking_pdf', booking_id=booking.id) }}" class="sticky-nav-btn btn-success">
+      <i class="fas fa-download me-2"></i>
+      Download PDF
+    </a>
     <a href="{{ url_for('movies') }}" class="sticky-nav-btn btn-primary">
       <i class="fas fa-film me-2"></i>
       Book More Movies
