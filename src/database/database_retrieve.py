@@ -356,7 +356,10 @@ def get_booking_by_id(booking_id):
             cursor.execute("""
                 SELECT b.*, s.date, s.starttime, s.baseprice,
                        m.name as movie_name, m.duration,
-                       r.name as room_name
+                       r.name as room_name,
+                       b.first_name as booker_first_name,
+                       b.last_name as booker_last_name,
+                       b.email as booker_email
                 FROM booking b
                 JOIN showing s ON b.showing_id = s.id
                 JOIN movie m ON s.movie_id = m.id

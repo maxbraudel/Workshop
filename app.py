@@ -833,10 +833,10 @@ def download_booking_pdf(booking_id):
         # Get customers/spectators for this booking
         customers = get_customers_for_booking(booking_id)
         
-        # Get proper booker information
+        # Get proper booker information using correct field names
         from flask import g
-        booker_name = f"{booking.get('first_name', '')} {booking.get('last_name', '')}".strip()
-        booker_email = booking.get('email', '')
+        booker_name = f"{booking.get('booker_first_name', '')} {booking.get('booker_last_name', '')}".strip()
+        booker_email = booking.get('booker_email', '')
         
         # Fall back to current user if booking doesn't have booker info
         if not booker_name and hasattr(g, 'current_user') and g.current_user:
@@ -946,10 +946,10 @@ def print_booking_tickets(booking_id):
         # Get customers/spectators for this booking
         customers = get_customers_for_booking(booking_id)
         
-        # Get proper booker information
+        # Get proper booker information using correct field names
         from flask import g
-        booker_name = f"{booking.get('first_name', '')} {booking.get('last_name', '')}".strip()
-        booker_email = booking.get('email', '')
+        booker_name = f"{booking.get('booker_first_name', '')} {booking.get('booker_last_name', '')}".strip()
+        booker_email = booking.get('booker_email', '')
         
         # Fall back to current user if booking doesn't have booker info
         if not booker_name and hasattr(g, 'current_user') and g.current_user:

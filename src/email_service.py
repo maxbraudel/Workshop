@@ -51,11 +51,14 @@ class EmailService:
             msg.attach(MIMEText(html_body, 'html', 'utf-8'))
             
             # Attach PDF
+            # Create a safe filename using booker name
+            safe_booker_name = "".join(c for c in booker_name if c.isalnum() or c in (' ', '-', '_')).rstrip()
+            safe_booker_name = safe_booker_name.replace(' ', '_')
             pdf_attachment = MIMEApplication(pdf_content, _subtype='pdf')
             pdf_attachment.add_header(
                 'Content-Disposition', 
                 'attachment', 
-                filename=f"tickets_reservation_{booking_data.get('booking_id', 'unknown')}.pdf"
+                filename=f"tickets_{safe_booker_name}_{booking_data.get('booking_id', 'unknown')}.pdf"
             )
             msg.attach(pdf_attachment)
             
