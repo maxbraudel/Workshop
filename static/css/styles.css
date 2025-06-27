@@ -81,6 +81,7 @@ body {
   font-weight: bold;
   color: var(--primary-color) !important;
   transition: var(--transition-fast);
+  text-decoration: none !important;
 }
 
 .navbar-brand:hover {
@@ -88,8 +89,20 @@ body {
   transform: scale(1.05);
 }
 
+.navbar-brand h4 {
+  margin-bottom: 0;
+  font-weight: bold;
+  color: var(--primary-color);
+  transition: var(--transition-fast);
+  font-size: 1.3rem; /* Consistent 1rem size across all templates */
+}
+
+.navbar-brand:hover h4 {
+  color: var(--primary-hover);
+}
+
 .navbar-brand i {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
 }
 
 .navbar-nav {
@@ -921,11 +934,7 @@ h2 {
   overflow-x: hidden; /* Prevent horizontal scroll */
 }
 
-.booking-header {
-  background-color: white;
-  border-bottom: 1px solid #dee2e6;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
+/* Booking pages use the same navbar as main site now */
 
 .booking-row {
   min-height: calc(100vh - var(--navbar-height) - 10rem);
@@ -992,10 +1001,15 @@ h2 {
   padding: 1rem;
 }
 
+/* Ensure booking page navbar brand has same size as main site */
+.booking-page .navbar-brand h4 {
+  font-size: 1.3rem; /* Same as main navbar */
+}
+
 /* Responsive adjustments for booking pages */
 @media (max-width: 768px) {
-  .booking-header h4 {
-    font-size: 1.1rem;
+  .booking-page .navbar-brand h4 {
+    font-size: 0.9rem; /* Proportionally smaller on mobile */
   }
   
   .booking-progress {
