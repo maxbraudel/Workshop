@@ -58,7 +58,7 @@ class EmailService:
             pdf_attachment.add_header(
                 'Content-Disposition', 
                 'attachment', 
-                filename=f"tickets_{safe_booker_name}_{booking_data.get('booking_id', 'unknown')}.pdf"
+                filename=f"tickets_{safe_booker_name}_{booking_data.get('id', 'unknown')}.pdf"
             )
             msg.attach(pdf_attachment)
             
