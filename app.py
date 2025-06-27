@@ -5,6 +5,7 @@ from src.middleware import init_middleware, login_required, logout_required, boo
 from src.error_handlers import init_error_handlers
 from src.logging_config import init_logging
 from src.pdf_generator import create_pdf_generator
+from src.email_service import send_booking_confirmation_email
 from src.database import (
     test_database_connection,
     create_session_token,
@@ -738,7 +739,44 @@ def booking_confirm():
         
         if booking_result and booking_result.get('success'):
             booking_id = booking_result['booking_id']
-            flash('Booking confirmed successfully!', 'success')
+            
+            # Send confirmation email with PDF attachment
+            try:
+                # Get complete booking data for email
+                booking_data = get_booking_by_id(booking_id)
+                customers = get_customers_for_booking(booking_id)
+                
+                if booking_data and customers:
+                    # Add customer count to booking data
+                    booking_data['num_spectators'] = len(customers)
+                    
+                    # Generate PDF content for email attachment
+                    pdf_generator = create_pdf_generator()
+                    pdf_buffer = pdf_generator.generate_booking_pdf(booking_data, customers)
+                    
+                    # Extract bytes from BytesIO buffer
+                    pdf_content = pdf_buffer.getvalue()
+                    
+                    # Send email with PDF attachment
+                    booker_full_name = f"{booker_first_name} {booker_last_name}"
+                    email_sent = send_booking_confirmation_email(
+                        booking_data=booking_data,
+                        pdf_content=pdf_content,
+                        booker_email=booker_email,
+                        booker_name=booker_full_name
+                    )
+                    
+                    if email_sent:
+                        flash('Booking confirmed successfully! A confirmation email with your tickets has been sent.', 'success')
+                    else:
+                        flash('Booking confirmed successfully! However, we could not send the confirmation email. You can download your tickets below.', 'warning')
+                else:
+                    flash('Booking confirmed successfully! You can download your tickets below.', 'success')
+                    
+            except Exception as email_error:
+                print(f"Failed to send confirmation email: {email_error}")
+                flash('Booking confirmed successfully! However, we could not send the confirmation email. You can download your tickets below.', 'warning')
+            
             return redirect(url_for('booking_tickets', booking_id=booking_id))
         else:
             error_msg = booking_result.get('error', 'The selected seats may no longer be available.') if booking_result else 'Booking failed.'

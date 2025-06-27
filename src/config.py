@@ -38,6 +38,14 @@ class Config:
     # Security Configuration
     BCRYPT_LOG_ROUNDS = int(os.getenv('BCRYPT_LOG_ROUNDS', 12))
     
+    # Email Configuration
+    EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
+    EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
+    EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True').lower() in ['true', '1', 'yes']
+    EMAIL_USERNAME = os.getenv('EMAIL_USERNAME', '')
+    EMAIL_PASSWORD = os.getenv('EMAIL_PASSWORD', '')
+    EMAIL_FROM = os.getenv('EMAIL_FROM', '')
+    
     @classmethod
     def get_database_config(cls):
         """Get database configuration as a dictionary."""
