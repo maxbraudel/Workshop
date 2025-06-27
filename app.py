@@ -212,10 +212,11 @@ def signup():
         username = request.form.get('username', '').strip()
         password = request.form.get('password', '')
         confirm_password = request.form.get('confirmPassword', '')
+        birthday = request.form.get('birthday', '')
         
         # Validate the form data
         try:
-            validation_errors = validate_signup_data(first_name, last_name, email, username, password, confirm_password)
+            validation_errors = validate_signup_data(first_name, last_name, email, username, password, confirm_password, birthday)
             
             if validation_errors:
                 for error in validation_errors:
@@ -223,7 +224,7 @@ def signup():
                 return render_template('signup.html')
             
             # Try to create the account
-            result = add_account(first_name, last_name, email, username, password)
+            result = add_account(first_name, last_name, email, username, password, birthday)
             
             if result and result['success']:
                 user = result['user']
@@ -277,10 +278,11 @@ def validate_identifiers():
     last_name = request.form.get('lastName', '').strip()
     email = request.form.get('email', '').strip().lower()
     username = request.form.get('username', '').strip()
+    birthday = request.form.get('birthday', '')
     
     try:
         # Validate the identifiers
-        validation_errors = validate_signup_identifiers(first_name, last_name, email, username)
+        validation_errors = validate_signup_identifiers(first_name, last_name, email, username, birthday)
         
         if validation_errors:
             return jsonify({
@@ -353,11 +355,30 @@ def settings():
                 last_name = request.form.get('last_name', '').strip()
                 email = request.form.get('email', '').strip().lower()
                 username = request.form.get('username', '').strip()
+                birthday = request.form.get('birthday', '')
                 
                 # Basic validation
                 if not all([first_name, last_name, email, username]):
                     flash('All fields are required.', 'error')
                     return render_template('settings.html', user=user)
+                
+                # Validate birthday if provided
+                if birthday:
+                    try:
+                        from datetime import datetime, date
+                        birth_date = datetime.strptime(birthday, '%Y-%m-%d').date()
+                        today = date.today()
+                        age = today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
+                        
+                        if age < 13:
+                            flash('You must be at least 13 years old.', 'error')
+                            return render_template('settings.html', user=user)
+                        elif age > 120:
+                            flash('Please enter a valid birth date.', 'error')
+                            return render_template('settings.html', user=user)
+                    except ValueError:
+                        flash('Please enter a valid birth date.', 'error')
+                        return render_template('settings.html', user=user)
                 
                 # Validate email format
                 import re
@@ -373,7 +394,7 @@ def settings():
                     return render_template('settings.html', user=user)
                 
                 # Update profile in database
-                result = modify_account_profile(user_id, first_name, last_name, email, username)
+                result = modify_account_profile(user_id, first_name, last_name, email, username, birthday)
                 
                 if result and result['success']:
                     # Update session username if it changed

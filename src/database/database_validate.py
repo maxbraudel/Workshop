@@ -10,8 +10,8 @@ from werkzeug.security import check_password_hash
 from .database import get_db_connection, logger
 from .database_retrieve import get_user_by_email
 
-def validate_signup_identifiers(first_name, last_name, email, username):
-    """Validate signup form identifiers (first name, last name, email, username)"""
+def validate_signup_identifiers(first_name, last_name, email, username, birthday=None):
+    """Validate signup form identifiers (first name, last name, email, username, birthday)"""
     errors = []
     
     # Name validation
@@ -31,6 +31,21 @@ def validate_signup_identifiers(first_name, last_name, email, username):
     
     if username and not re.match("^[a-zA-Z0-9_]+$", username):
         errors.append("Username can only contain letters, numbers, and underscores")
+    
+    # Birthday validation
+    if birthday:
+        try:
+            from datetime import datetime, date
+            birth_date = datetime.strptime(birthday, '%Y-%m-%d').date()
+            today = date.today()
+            age = today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
+            
+            if age < 13:
+                errors.append("You must be at least 13 years old to create an account")
+            elif age > 120:
+                errors.append("Please enter a valid birth date")
+        except ValueError:
+            errors.append("Please enter a valid birth date")
     
     # Check database constraints if basic validation passes
     if not errors:
@@ -72,12 +87,12 @@ def validate_signup_passwords(password, confirm_password):
     
     return errors
 
-def validate_signup_data(first_name, last_name, email, username, password, confirm_password):
+def validate_signup_data(first_name, last_name, email, username, password, confirm_password, birthday=None):
     """Validate complete signup form data (for backward compatibility)"""
     errors = []
     
     # Validate identifiers
-    identifier_errors = validate_signup_identifiers(first_name, last_name, email, username)
+    identifier_errors = validate_signup_identifiers(first_name, last_name, email, username, birthday)
     errors.extend(identifier_errors)
     
     # Validate passwords

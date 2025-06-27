@@ -86,7 +86,7 @@ def cleanup_expired_sessions():
         finally:
             cursor.close()
 
-def add_account(first_name, last_name, email, username, password):
+def add_account(first_name, last_name, email, username, password, birthday=None):
     """Create a new user account with full details"""
     try:
         with get_db_connection() as conn:
@@ -107,15 +107,15 @@ def add_account(first_name, last_name, email, username, password):
             
             # Insert new account
             cursor.execute("""
-                INSERT INTO account (first_name, last_name, email, username, password_hash, password_modified_at)
-                VALUES (%s, %s, %s, %s, %s, NOW())
-            """, (first_name, last_name, email, username, password_hash))
+                INSERT INTO account (first_name, last_name, email, username, password_hash, birthday, password_modified_at)
+                VALUES (%s, %s, %s, %s, %s, %s, NOW())
+            """, (first_name, last_name, email, username, password_hash, birthday))
             
             conn.commit()
             user_id = cursor.lastrowid
             
             # Return the created user data
-            cursor.execute("SELECT id, first_name, last_name, email, username FROM account WHERE id = %s", (user_id,))
+            cursor.execute("SELECT id, first_name, last_name, email, username, birthday FROM account WHERE id = %s", (user_id,))
             user_data = cursor.fetchone()
             
             cursor.close()
@@ -127,7 +127,8 @@ def add_account(first_name, last_name, email, username, password):
                     "first_name": user_data[1],
                     "last_name": user_data[2],
                     "email": user_data[3],
-                    "username": user_data[4]
+                    "username": user_data[4],
+                    "birthday": user_data[5]
                 }
             }
             
@@ -147,7 +148,7 @@ def add_account(first_name, last_name, email, username, password):
         return {"success": False, "error": "Server unavailable, please try again later."}
 
 @handle_db_errors(default_return=None)
-def modify_account_profile(user_id, first_name, last_name, email, username):
+def modify_account_profile(user_id, first_name, last_name, email, username, birthday=None):
     """Update user profile information"""
     try:
         with get_db_connection() as conn:
@@ -166,9 +167,9 @@ def modify_account_profile(user_id, first_name, last_name, email, username):
             # Update account information
             cursor.execute("""
                 UPDATE account 
-                SET first_name = %s, last_name = %s, email = %s, username = %s, profile_modified_at = NOW()
+                SET first_name = %s, last_name = %s, email = %s, username = %s, birthday = %s, profile_modified_at = NOW()
                 WHERE id = %s
-            """, (first_name, last_name, email, username, user_id))
+            """, (first_name, last_name, email, username, birthday, user_id))
             
             conn.commit()
             affected_rows = cursor.rowcount
@@ -177,7 +178,7 @@ def modify_account_profile(user_id, first_name, last_name, email, username):
                 return {"success": False, "error": "User not found"}
             
             # Return the updated user data
-            cursor.execute("SELECT id, first_name, last_name, email, username FROM account WHERE id = %s", (user_id,))
+            cursor.execute("SELECT id, first_name, last_name, email, username, birthday FROM account WHERE id = %s", (user_id,))
             user_data = cursor.fetchone()
             
             cursor.close()
@@ -189,7 +190,8 @@ def modify_account_profile(user_id, first_name, last_name, email, username):
                     "first_name": user_data[1],
                     "last_name": user_data[2],
                     "email": user_data[3],
-                    "username": user_data[4]
+                    "username": user_data[4],
+                    "birthday": user_data[5]
                 }
             }
             

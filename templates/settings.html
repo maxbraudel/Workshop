@@ -80,6 +80,31 @@
               </div>
             </div>
             
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold text-muted">Date of Birth</label>
+                <div class="profile-field">
+                  <div class="form-control-plaintext bg-light px-3 py-2 rounded display-mode" id="birthday_display">
+                    <i class="fas fa-birthday-cake me-2 text-primary"></i>
+                    {% if user.birthday %}
+                      {{ user.birthday.strftime('%B %d, %Y') }}
+                    {% else %}
+                      Not provided
+                    {% endif %}
+                  </div>
+                  <input type="date" class="form-control edit-mode d-none" id="birthday_input" name="birthday" 
+                         value="{{ user.birthday.strftime('%Y-%m-%d') if user.birthday else '' }}">
+                </div>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold text-muted">Member Since</label>
+                <div class="form-control-plaintext bg-light px-3 py-2 rounded">
+                  <i class="fas fa-calendar me-2 text-primary"></i>
+                  {{ user.created_at.strftime('%B %d, %Y') if user.created_at else 'Unknown' }}
+                </div>
+              </div>
+            </div>
+            
             <!-- Action Buttons -->
             <div class="row mt-1">
               <div class="col-12">
@@ -219,6 +244,7 @@ function cancelEdit() {
   document.getElementById('last_name_input').value = '{{ user.last_name or "" }}';
   document.getElementById('username_input').value = '{{ user.username }}';
   document.getElementById('email_input').value = '{{ user.email }}';
+  document.getElementById('birthday_input').value = '{{ user.birthday.strftime("%Y-%m-%d") if user.birthday else "" }}';
   
   // Toggle buttons
   document.getElementById('editProfileBtn').classList.remove('d-none');
@@ -230,5 +256,30 @@ function saveProfile() {
   // Submit the form
   document.getElementById('profileForm').submit();
 }
+
+// Add birthday validation
+document.getElementById('birthday_input').addEventListener('change', function() {
+  if (this.value) {
+    const birthDate = new Date(this.value);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    
+    if (age < 13) {
+      this.setCustomValidity('You must be at least 13 years old');
+      this.classList.add('is-invalid');
+    } else if (age > 120) {
+      this.setCustomValidity('Please enter a valid birth date');
+      this.classList.add('is-invalid');
+    } else {
+      this.setCustomValidity('');
+      this.classList.remove('is-invalid');
+    }
+  }
+});
 </script>
 {% endblock %}

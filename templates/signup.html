@@ -77,18 +77,33 @@
                        required>
               </div>
               
-              <div class="mb-4">
-                <label for="username" class="form-label fw-bold">
-                  <i class="fas fa-at me-2"></i>Username
-                </label>
-                <input type="text" 
-                       class="form-control form-control-lg" 
-                       id="username" 
-                       name="username" 
-                       placeholder="Choose a username"
-                       value="{{ request.form.username if request.form.username }}"
-                       required>
-                <div class="form-text">Username must be unique and contain only letters, numbers, and underscores.</div>
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label for="username" class="form-label fw-bold">
+                    <i class="fas fa-at me-2"></i>Username
+                  </label>
+                  <input type="text" 
+                         class="form-control form-control-lg" 
+                         id="username" 
+                         name="username" 
+                         placeholder="Choose a username"
+                         value="{{ request.form.username if request.form.username }}"
+                         required>
+                  <div class="form-text">Username must be unique and contain only letters, numbers, and underscores.</div>
+                </div>
+                
+                <div class="col-md-6 mb-4">
+                  <label for="birthday" class="form-label fw-bold">
+                    <i class="fas fa-birthday-cake me-2"></i>Date of Birth
+                  </label>
+                  <input type="date" 
+                         class="form-control form-control-lg" 
+                         id="birthday" 
+                         name="birthday" 
+                         value="{{ request.form.birthday if request.form.birthday }}"
+                         required>
+                  <div class="form-text">You must be at least 13 years old to create an account.</div>
+                </div>
               </div>
               
               <!-- Step 1 Action Button -->
@@ -185,9 +200,10 @@ document.getElementById('nextStep').addEventListener('click', function() {
   const lastName = document.getElementById('lastName');
   const email = document.getElementById('email');
   const username = document.getElementById('username');
+  const birthday = document.getElementById('birthday');
   
   // Reset validation states
-  [firstName, lastName, email, username].forEach(field => {
+  [firstName, lastName, email, username, birthday].forEach(field => {
     field.classList.remove('is-invalid');
   });
   
@@ -218,6 +234,26 @@ document.getElementById('nextStep').addEventListener('click', function() {
     username.classList.add('is-invalid');
     username.focus();
     isValid = false;
+  } else if (!birthday.value) {
+    birthday.classList.add('is-invalid');
+    birthday.focus();
+    isValid = false;
+  } else {
+    // Validate age (must be at least 13 years old)
+    const birthDate = new Date(birthday.value);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    
+    if (age < 13) {
+      birthday.classList.add('is-invalid');
+      birthday.focus();
+      isValid = false;
+    }
   }
   
   if (!isValid) {
@@ -234,6 +270,7 @@ document.getElementById('nextStep').addEventListener('click', function() {
   formData.append('lastName', lastName.value.trim());
   formData.append('email', email.value.trim().toLowerCase());
   formData.append('username', username.value.trim());
+  formData.append('birthday', birthday.value);
   
   // Send AJAX request to validate identifiers
   fetch('/validate_identifiers', {
@@ -315,6 +352,29 @@ document.getElementById('confirmPassword').addEventListener('input', function() 
   
   if (password !== confirmPassword) {
     this.setCustomValidity('Passwords do not match');
+    this.classList.add('is-invalid');
+  } else {
+    this.setCustomValidity('');
+    this.classList.remove('is-invalid');
+  }
+});
+
+// Birthday age validation
+document.getElementById('birthday').addEventListener('change', function() {
+  const birthDate = new Date(this.value);
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+  
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  
+  if (age < 13) {
+    this.setCustomValidity('You must be at least 13 years old to create an account');
+    this.classList.add('is-invalid');
+  } else if (age > 120) {
+    this.setCustomValidity('Please enter a valid birth date');
     this.classList.add('is-invalid');
   } else {
     this.setCustomValidity('');
