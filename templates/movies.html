@@ -124,13 +124,11 @@
                 </div>
             {% endfor %}
         {% else %}
-          <div class="centered-alert">
-            <div class="alert alert-info text-center">
-              <i class="fas fa-film fa-2x mb-3"></i>
-              <h4>No Movies Available</h4>
-              <p class="mb-0">Check back later for new movie releases!</p>
+            <div class="centered-alert">
+                <div class="text-black-50 text-center">
+                    <p class="mb-0 fs-4">No movies are showing on the selected date.</p>
+                </div>
             </div>
-          </div>
         {% endif %}
       </div>
     </div>
@@ -156,9 +154,46 @@ document.addEventListener('DOMContentLoaded', function() {
     const moviesData = {{ movies|tojson }};
     console.log('Movies data:', moviesData);
     
+    // Get default date from server (this includes cookie-based persistence)
+    const defaultDate = '{{ default_date }}';
+    console.log('Default date from server:', defaultDate);
+    
     let currentOffset = 0;
     let selectedDate = null;
     const dateButtons = [];
+    
+    // Cookie utility functions
+    function setCookie(name, value, days = 30) {
+        const expires = new Date();
+        expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
+        document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/`;
+    }
+    
+    function getCookie(name) {
+        const nameEQ = name + "=";
+        const ca = document.cookie.split(';');
+        for(let i = 0; i < ca.length; i++) {
+            let c = ca[i];
+            while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+            if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+        }
+        return null;
+    }
+    
+    // Send date preference to server to update cookie
+    function updateDatePreference(dateValue) {
+        fetch('/set_movies_date_preference', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ date: dateValue })
+        }).catch(error => {
+            console.log('Failed to update server cookie:', error);
+            // Fallback to client-side cookie
+            setCookie('preferred_movies_date', dateValue);
+        });
+    }
     
     // Generate dates for the next 16 days
     function generateDates() {
@@ -234,10 +269,10 @@ document.addEventListener('DOMContentLoaded', function() {
         
         dates.forEach((date, index) => {
             const dateInfo = formatDisplayDate(date, index);
-            const isToday = index === 0;
+            const isDefaultDate = dateInfo.fullDate === defaultDate;
             
             const dateButton = document.createElement('button');
-            dateButton.className = `flex-shrink-0 date-btn ${isToday ? 'active' : ''}`;
+            dateButton.className = `flex-shrink-0 date-btn ${isDefaultDate ? 'active' : ''}`;
             dateButton.dataset.date = dateInfo.fullDate;
             dateButton.style.minWidth = '140px';
             
@@ -271,11 +306,47 @@ document.addEventListener('DOMContentLoaded', function() {
             dateButtons.push(dateButton);
         });
         
-        // Select today by default - but don't set selectedDate until after fetch
-        const todayButton = dateCarousel.querySelector('.date-btn.active');
-        if (todayButton) {
-            const todayDate = todayButton.dataset.date;
-            selectDateHandler(todayDate, todayButton);
+        // Set the selected date to the default date and update cookie preference
+        selectedDate = defaultDate;
+        console.log('Initial selected date set to:', selectedDate);
+        
+        // Scroll to show the active button if it's not today
+        const activeButton = dateCarousel.querySelector('.date-btn.active');
+        if (activeButton && defaultDate !== generateDates()[0].toISOString().split('T')[0]) {
+            // If default date is not today, scroll to show the active button
+            setTimeout(() => {
+                scrollToShowButton(activeButton);
+            }, 100);
+        }
+    }
+    
+    // Scroll carousel to show a specific button
+    function scrollToShowButton(button) {
+        const carouselContainer = dateCarousel.parentElement;
+        const carouselContainerWidth = carouselContainer.offsetWidth;
+        const buttonRect = button.getBoundingClientRect();
+        const containerRect = carouselContainer.getBoundingClientRect();
+        
+        // Check if button is visible
+        const isVisible = buttonRect.left >= containerRect.left && buttonRect.right <= containerRect.right;
+        
+        if (!isVisible) {
+            // Calculate the offset needed to center the button
+            const buttonOffsetLeft = button.offsetLeft;
+            const buttonWidth = button.offsetWidth;
+            const centerOffset = buttonOffsetLeft - (carouselContainerWidth / 2) + (buttonWidth / 2);
+            
+            // Ensure offset is within bounds
+            let totalButtonsWidth = 0;
+            dateButtons.forEach(btn => {
+                totalButtonsWidth += btn.offsetWidth + 8;
+            });
+            totalButtonsWidth -= 8;
+            
+            const maxOffset = Math.max(0, totalButtonsWidth - carouselContainerWidth);
+            currentOffset = Math.max(0, Math.min(centerOffset, maxOffset));
+            
+            updateCarousel();
         }
     }
     
@@ -372,6 +443,9 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Setting selected date to:', selectedDateValue);
         selectedDate = selectedDateValue;
         
+        // Save date preference (both client and server)
+        updateDatePreference(selectedDateValue);
+        
         // Fetch movies for the selected date
         console.log('About to fetch movies for date:', selectedDateValue);
         fetchMoviesForDate(selectedDateValue);
@@ -439,7 +513,7 @@ document.addEventListener('DOMContentLoaded', function() {
             moviesContainer.innerHTML = `
                 <div class="centered-alert">
                     <div class="text-black-50 text-center">
-                        <p class="mb-0 fs-4">No movies are showing on the selected date</p>
+                        <p class="mb-0 fs-4">No movies are showing on the selected date.</p>
                     </div>
                 </div>
             `;

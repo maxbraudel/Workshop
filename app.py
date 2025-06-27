@@ -80,13 +80,38 @@ def movies():
     # Get movies with their showings from the database
     try:
         if selected_date:
-            # Get movies for specific date
+            # Get movies for specific date (from AJAX request)
             movies_list = get_movies_with_showings_by_date(selected_date)
+            default_date = selected_date
         else:
-            # Get movies for today by default
-            from datetime import date
-            today = date.today().isoformat()
-            movies_list = get_movies_with_showings_by_date(today)
+            # For initial page load, check for saved date preference in cookie
+            from datetime import date, datetime, timedelta
+            today = date.today()
+            saved_date = request.cookies.get('preferred_movies_date')
+            
+            # Validate saved date if it exists
+            if saved_date:
+                try:
+                    # Parse saved date
+                    saved_date_obj = datetime.fromisoformat(saved_date).date()
+                    # Check if saved date is within valid range (today to +15 days)
+                    max_date = today + timedelta(days=15)
+                    if today <= saved_date_obj <= max_date:
+                        # Use saved date if it's valid
+                        default_date = saved_date
+                        movies_list = get_movies_with_showings_by_date(saved_date)
+                    else:
+                        # Saved date is out of range, use today
+                        default_date = today.isoformat()
+                        movies_list = get_movies_with_showings_by_date(default_date)
+                except (ValueError, TypeError):
+                    # Invalid date format in cookie, use today
+                    default_date = today.isoformat()
+                    movies_list = get_movies_with_showings_by_date(default_date)
+            else:
+                # No saved date, use today
+                default_date = today.isoformat()
+                movies_list = get_movies_with_showings_by_date(default_date)
             
         if movies_list is None:  # Database error occurred
             flash('Server unavailable, please try again later.', 'error')
@@ -100,12 +125,22 @@ def movies():
         flash('Server unavailable, please try again later.', 'error')
         print(f"Movies page error: {e}")  # Log for debugging
         movies_list = []
+        # Fallback to today if there's an error
+        from datetime import date
+        default_date = date.today().isoformat()
     
     # If this is an AJAX request, return JSON
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return jsonify({'movies': movies_list})
     
-    return render_template('movies.html', movies=movies_list, storeUrl=True)
+    # For regular page loads, create response and set cookie if date was selected
+    response = make_response(render_template('movies.html', movies=movies_list, default_date=default_date, storeUrl=True))
+    
+    # Set cookie for the default date being displayed (expires in 30 days)
+    if not selected_date:  # Only set cookie on initial page load, not AJAX requests
+        response.set_cookie('preferred_movies_date', default_date, max_age=30*24*60*60, httponly=False)
+    
+    return response
 
 @app.route('/poster/<int:poster_id>')
 def serve_poster(poster_id):
@@ -1029,6 +1064,37 @@ def is_auth_page(url):
     
     # Check if it's a login or signup page
     return path.endswith('/login') or path.endswith('/signup') or '/login' in path or '/signup' in path
+
+@app.route('/set_movies_date_preference', methods=['POST'])
+def set_movies_date_preference():
+    """Set the user's preferred movies date in a cookie"""
+    try:
+        date_preference = request.json.get('date') if request.is_json else request.form.get('date')
+        
+        if not date_preference:
+            return jsonify({'success': False, 'error': 'No date provided'})
+        
+        # Validate date format
+        from datetime import datetime, date, timedelta
+        try:
+            selected_date_obj = datetime.fromisoformat(date_preference).date()
+            today = date.today()
+            max_date = today + timedelta(days=15)
+            
+            if today <= selected_date_obj <= max_date:
+                response = jsonify({'success': True})
+                # Set cookie for 30 days
+                response.set_cookie('preferred_movies_date', date_preference, max_age=30*24*60*60, httponly=False)
+                return response
+            else:
+                return jsonify({'success': False, 'error': 'Date out of valid range'})
+                
+        except (ValueError, TypeError):
+            return jsonify({'success': False, 'error': 'Invalid date format'})
+            
+    except Exception as e:
+        print(f"Error setting movies date preference: {e}")
+        return jsonify({'success': False, 'error': 'Server error'})
 
 if __name__ == '__main__':
     app.run(debug=config.DEBUG, host='0.0.0.0', port=5500)
