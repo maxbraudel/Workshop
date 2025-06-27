@@ -20,7 +20,8 @@ def validate_user_session():
                 'username': session_data['username'],
                 'email': session_data['email'],
                 'first_name': session_data.get('first_name'),
-                'last_name': session_data.get('last_name')
+                'last_name': session_data.get('last_name'),
+                'birthday': session_data.get('birthday')
             }
             return True
         else:

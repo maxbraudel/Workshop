@@ -153,7 +153,9 @@
                       <label for="spectator_{{ i }}_birth_date" class="form-label">Birth Date *</label>
                       <input type="date" class="form-control" 
                              id="spectator_{{ i }}_birth_date" 
-                             name="spectator_{{ i }}_birth_date" required>
+                             name="spectator_{{ i }}_birth_date" 
+                             value="{{ current_user.birthday.strftime('%Y-%m-%d') if current_user and current_user.birthday and i == 0 else '' }}" 
+                             required>
                     </div>
                   </div>
                   
