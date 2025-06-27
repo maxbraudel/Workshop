@@ -31,7 +31,9 @@ from src.database import (
     validate_signup_identifiers,
     validate_signup_passwords,
     validate_login_data,
-    is_showing_expired
+    is_showing_expired,
+    get_movie_poster,
+    get_poster_image_data
 )
 
 # Get configuration
@@ -92,6 +94,11 @@ def movies():
         if movies_list is None:  # Database error occurred
             flash('Server unavailable, please try again later.', 'error')
             movies_list = []  # Show empty list instead of crashing
+        else:
+            # Add poster information for each movie
+            for movie in movies_list:
+                movie['poster'] = get_movie_poster(movie['id'])
+                
     except Exception as e:
         flash('Server unavailable, please try again later.', 'error')
         print(f"Movies page error: {e}")  # Log for debugging
@@ -102,6 +109,27 @@ def movies():
         return jsonify({'movies': movies_list})
     
     return render_template('movies.html', movies=movies_list, storeUrl=True)
+
+@app.route('/poster/<int:poster_id>')
+def serve_poster(poster_id):
+    """Serve movie poster images from database"""
+    try:
+        poster_data = get_poster_image_data(poster_id)
+        if not poster_data:
+            abort(404)
+        
+        from flask import Response
+        return Response(
+            poster_data['image_data'],
+            mimetype=poster_data['mime_type'],
+            headers={
+                'Cache-Control': 'public, max-age=86400',  # Cache for 24 hours
+                'Content-Type': poster_data['mime_type']
+            }
+        )
+    except Exception as e:
+        print(f"Error serving poster {poster_id}: {e}")
+        abort(404)
 
 @app.route('/login', methods=['GET', 'POST'])
 @logout_required

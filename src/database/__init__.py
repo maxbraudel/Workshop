@@ -36,7 +36,9 @@ from .database_retrieve import (
     get_booking_by_id,
     get_customers_for_booking,
     get_bookings_by_account_id,
-    is_showing_expired
+    is_showing_expired,
+    get_movie_poster,
+    get_poster_image_data
 )
 
 # Import validation functions

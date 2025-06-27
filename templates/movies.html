@@ -40,72 +40,88 @@
       <!-- Movies Container - Always present for JavaScript to target -->
       <div id="moviesContainer">
         {% if movies %}
-          <div class="row">
             {% for movie in movies %}
-              <div class="col-12 col-md-6 mb-4">
+                <div class="col-12 mb-4">
                 <div class="card movie-card h-100">
-                  <div class="card-body d-flex flex-column">
-                    <!-- Movie Title -->
-                    <h5 class="card-title fw-bold text-primary mb-2">
-                      {{ movie.name }}
-                    </h5>
+                    <div class="card-body d-flex flex-row p-0">
+                    <!-- Movie Poster -->
+                    <div class="movie-poster-container" style="flex: 0 0 120px; height: 180px;">
+                        {% if movie.poster %}
+                        <img src="{{ url_for('serve_poster', poster_id=movie.poster.id) }}" 
+                                alt="{{ movie.name }} poster" 
+                                class="img-fluid h-100 w-100"
+                                style="object-fit: cover; border-radius: 1rem 0 0 1rem;">
+                        {% else %}
+                        <div class="h-100 w-100 d-flex align-items-center justify-content-center bg-light"
+                                style="border-radius: 1rem 0 0 1rem;">
+                            <i class="fas fa-film fa-2x text-muted"></i>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Movie Info -->
+                    <div class="movie-info-container d-flex flex-column flex-grow-1 p-3">
+                        <!-- Movie Title -->
+                        <h5 class="card-title fw-bold text-primary mb-2">
+                        {{ movie.name }}
+                        </h5>
                     
                     <!-- Duration Badge -->
                     <div class="mb-3">
-                      <span class="badge bg-secondary">
+                        <span class="badge bg-secondary">
                         <i class="fas fa-clock me-1"></i>
                         {{ movie.duration }} min
-                      </span>
+                        </span>
                     </div>
                     
                     <!-- Director -->
                     <p class="mb-2">
-                      <strong>Directed by:</strong> 
-                      <span class="text-muted">{{ movie.director }}</span>
+                        <strong>Directed by:</strong> 
+                        <span class="text-muted">{{ movie.director }}</span>
                     </p>
                     
                     <!-- Cast -->
                     <p class="mb-3">
-                      <strong>Cast:</strong> 
-                      <span class="text-muted">{{ movie.cast }}</span>
+                        <strong>Cast:</strong> 
+                        <span class="text-muted">{{ movie.cast }}</span>
                     </p>
                     
                     <!-- Synopsis -->
                     <div class="mt-auto">
-                      <h6 class="fw-bold mb-2">Synopsis</h6>
-                      <p class="card-text text-muted small">
+                        <h6 class="fw-bold mb-2">Synopsis</h6>
+                        <p class="card-text text-muted small">
                         {{ movie.synopsis }}
-                      </p>
+                        </p>
                     </div>
                     
                     <!-- Showings -->
                     <div class="mt-3 pt-4 border-top">
-                      <div class="showings-container" data-movie-id="{{ movie.id }}">
+                        <div class="showings-container" data-movie-id="{{ movie.id }}">
                         {% if movie.showings %}
-                          <div class="d-flex flex-wrap gap-2">
+                            <div class="d-flex flex-wrap gap-2">
                             {% for showing in movie.showings %}
-                              <button class="btn date-btn showing-time-btn" 
-                                      style="min-width: auto; padding: 0.75rem 1rem;" 
-                                      onclick="bookShowing({{ showing.id }})">
+                                <button class="btn date-btn showing-time-btn" 
+                                        style="min-width: auto; padding: 0.75rem 1rem;" 
+                                        onclick="bookShowing({{ showing.id }})">
                                 <div class="d-flex flex-column align-items-center justify-content-center h-100">
-                                  <div class="fw-bold">{{ showing.starttime|seconds_to_time }}</div>
+                                    <div class="fw-bold">{{ showing.starttime|seconds_to_time }}</div>
                                 </div>
-                              </button>
+                                </button>
                             {% endfor %}
-                          </div>
+                            </div>
                         {% else %}
-                          <p class="text-muted small mb-0">
+                            <p class="text-muted small mb-0">
                             <i class="fas fa-info-circle me-1"></i>
                             No showings available for today
-                          </p>
+                            </p>
                         {% endif %}
-                      </div>
+                        </div>
                     </div>
-                  </div>
+                    </div>
+                    </div>
                 </div>
-              </div>
+                </div>
             {% endfor %}
-          </div>
         {% else %}
           <div class="centered-alert">
             <div class="alert alert-info text-center">
@@ -431,14 +447,35 @@ document.addEventListener('DOMContentLoaded', function() {
         
         let moviesHTML = '';
         movies.forEach(movie => {
+            // Build poster HTML
+            let posterHTML = '';
+            if (movie.poster && movie.poster.id) {
+                posterHTML = `<img src="/poster/${movie.poster.id}" 
+                                   alt="${movie.name} poster" 
+                                   class="img-fluid h-100 w-100"
+                                   style="object-fit: cover; border-radius: 1rem 0 0 1rem;">`;
+            } else {
+                posterHTML = `<div class="h-100 w-100 d-flex align-items-center justify-content-center bg-light"
+                                   style="border-radius: 1rem 0 0 1rem;">
+                                <i class="fas fa-film fa-2x text-muted"></i>
+                              </div>`;
+            }
+            
             moviesHTML += `
-                <div class="col-12 col-md-6 mb-4">
+                <div class="col-12 mb-4">
                     <div class="card movie-card h-100">
-                        <div class="card-body d-flex flex-column">
-                            <!-- Movie Title -->
-                            <h5 class="card-title fw-bold text-primary mb-2">
-                                ${movie.name}
-                            </h5>
+                        <div class="card-body d-flex flex-row p-0">
+                            <!-- Movie Poster -->
+                            <div class="movie-poster-container" style="flex: 0 0 120px; height: 180px;">
+                                ${posterHTML}
+                            </div>
+                            
+                            <!-- Movie Info -->
+                            <div class="movie-info-container d-flex flex-column flex-grow-1 p-3">
+                                <!-- Movie Title -->
+                                <h5 class="card-title fw-bold text-primary mb-2">
+                                    ${movie.name}
+                                </h5>
                             
                             <!-- Duration Badge -->
                             <div class="mb-3">
@@ -474,6 +511,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     ${generateShowingsHTML(movie.showings)}
                                 </div>
                             </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -481,7 +519,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         // Wrap the movies in a row div to match server-rendered HTML structure
-        moviesContainer.innerHTML = `<div class="row">${moviesHTML}</div>`;
+        moviesContainer.innerHTML = moviesHTML
     }
     
     function generateShowingsHTML(showings) {

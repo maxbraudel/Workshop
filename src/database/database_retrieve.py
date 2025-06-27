@@ -586,3 +586,44 @@ def get_bookings_by_account_id(account_id, expired=False):
             return filtered_bookings
         finally:
             cursor.close()
+
+@handle_db_errors(default_return=None)
+def get_movie_poster(movie_id):
+    """Get the primary poster for a movie (without image blob data)"""
+    with get_db_connection() as conn:
+        cursor = conn.cursor(dictionary=True)
+        
+        try:
+            cursor.execute("""
+                SELECT id, name, mime_type, file_size
+                FROM movieposter 
+                WHERE movie_id = %s AND is_primary = 1
+                LIMIT 1
+            """, (movie_id,))
+            
+            return cursor.fetchone()
+        finally:
+            cursor.close()
+
+@handle_db_errors(default_return=None)
+def get_poster_image_data(poster_id):
+    """Get the actual image blob data for a poster"""
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        
+        try:
+            cursor.execute("""
+                SELECT image, mime_type
+                FROM movieposter 
+                WHERE id = %s
+            """, (poster_id,))
+            
+            result = cursor.fetchone()
+            if result:
+                return {
+                    'image_data': result[0],
+                    'mime_type': result[1]
+                }
+            return None
+        finally:
+            cursor.close()
