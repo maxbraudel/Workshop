@@ -59,12 +59,6 @@ def get_db_connection():
     finally:
         conn.close()
 
-def get_db_connection_direct():
-    """Get a database connection directly (for backward compatibility)"""
-    if connection_pool is None:
-        return mysql.connector.connect(**DB_CONFIG)
-    return connection_pool.get_connection()
-
 def test_database_connection():
     """Test database connection and return account count"""
     try:
@@ -78,28 +72,3 @@ def test_database_connection():
     except Exception as e:
         print(f"❌ Database connection error: {e}")
         return False
-
-@handle_db_errors(default_return=([], []))
-def analyze_movie_table():
-    """Analyze the movie table structure and sample data"""
-    with get_db_connection() as conn:
-        cursor = conn.cursor(dictionary=True)
-        
-        try:
-            # Get table structure
-            cursor.execute("DESCRIBE movie")
-            columns = cursor.fetchall()
-            print("Movie table structure:")
-            for col in columns:
-                print(f"  {col['Field']}: {col['Type']} (Null: {col['Null']}, Key: {col['Key']})")
-            
-            # Get sample data
-            cursor.execute("SELECT * FROM movie LIMIT 3")
-            sample_movies = cursor.fetchall()
-            print("\nSample movie data:")
-            for movie in sample_movies:
-                print(f"  Movie: {movie}")
-                
-            return columns, sample_movies
-        finally:
-            cursor.close()

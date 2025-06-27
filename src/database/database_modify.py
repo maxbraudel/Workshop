@@ -47,26 +47,6 @@ def invalidate_session_token(session_token):
         finally:
             cursor.close()
 
-@handle_db_errors(default_return=None)
-def create_user(username, email, password):
-    """Create a new user account"""
-    with get_db_connection() as conn:
-        cursor = conn.cursor()
-        
-        try:
-            # Hash the password
-            password_hash = generate_password_hash(password)
-            
-            cursor.execute("""
-                INSERT INTO account (username, email, password_hash, password_modified_at)
-                VALUES (%s, %s, %s, NOW())
-            """, (username, email, password_hash))
-            
-            conn.commit()
-            return cursor.lastrowid
-        finally:
-            cursor.close()
-
 @handle_db_errors(default_return=False)
 def cleanup_expired_sessions():
     """Clean up expired sessions from the database"""
@@ -279,85 +259,6 @@ def check_seats_availability(seat_ids, showing_id):
             
             # If no seats are reserved, they're all available
             return reserved_count == 0
-        finally:
-            cursor.close()
-
-@handle_db_errors(default_return=None)
-def create_complete_booking(showing_id, booker_info, spectators, seat_assignments):
-    """
-    Create a complete booking with all customers and seat reservations
-    
-    Args:
-        showing_id: ID of the showing
-        booker_info: dict with account_id (optional)
-        spectators: list of dicts with spectator info (firstname, lastname, age)
-        seat_assignments: list of seat_ids corresponding to spectators
-    
-    Returns:
-        booking_id if successful, None if failed
-    """
-    with get_db_connection() as conn:
-        cursor = conn.cursor()
-        
-        try:
-            # Start transaction
-            conn.start_transaction()
-            
-            # Check if all seats are available
-            if not check_seats_availability(seat_assignments, showing_id):
-                conn.rollback()
-                return None
-            
-            # Get the base price for this showing
-            cursor.execute("SELECT baseprice FROM showing WHERE id = %s", (showing_id,))
-            showing_result = cursor.fetchone()
-            if not showing_result:
-                conn.rollback()
-                return None
-            
-            base_price = showing_result[0]
-            # Simple pricing: base_price * number of spectators
-            total_price = base_price * len(spectators)
-            
-            # Handle account_id - use provided account_id or default to 1 for anonymous bookings
-            account_id = booker_info.get('account_id')
-            if account_id is None:
-                # For anonymous bookings, use account_id = 1 (or create a special anonymous account)
-                account_id = 1
-            
-            # Create the booking
-            cursor.execute("""
-                INSERT INTO booking (price, account_id, showing_id)
-                VALUES (%s, %s, %s)
-            """, (total_price, account_id, showing_id))
-            
-            booking_id = cursor.lastrowid
-            
-            # Create customers and seat reservations
-            for i, spectator in enumerate(spectators):
-                # Create customer
-                cursor.execute("""
-                    INSERT INTO customer (firstname, lastname, age, pmr, booking_id)
-                    VALUES (%s, %s, %s, %s, %s)
-                """, (spectator['firstname'], spectator['lastname'], 
-                     spectator['age'], spectator.get('pmr', 0), booking_id))
-                
-                customer_id = cursor.lastrowid
-                
-                # Create seat reservation
-                cursor.execute("""
-                    INSERT INTO seatreservation (seat_id, showing_id, customer_id)
-                    VALUES (%s, %s, %s)
-                """, (seat_assignments[i], showing_id, customer_id))
-            
-            # Commit transaction
-            conn.commit()
-            return booking_id
-            
-        except Exception as e:
-            conn.rollback()
-            logger.error(f"Error creating complete booking: {e}")
-            return None
         finally:
             cursor.close()
 

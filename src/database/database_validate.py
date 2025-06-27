@@ -4,12 +4,6 @@ from werkzeug.security import check_password_hash
 from .database import get_db_connection, logger
 from .database_retrieve import get_user_by_email
 
-import mysql.connector
-import re
-from werkzeug.security import check_password_hash
-from .database import get_db_connection, logger
-from .database_retrieve import get_user_by_email
-
 def validate_signup_identifiers(first_name, last_name, email, username, birthday=None):
     """Validate signup form identifiers (first name, last name, email, username, birthday)"""
     errors = []
@@ -145,11 +139,3 @@ def validate_login_data(email, password):
     finally:
         if 'cursor' in locals():
             cursor.close()
-
-def authenticate_user(email, password):
-    """Authenticate a user with email and password"""
-    user = get_user_by_email(email)
-    
-    if user and check_password_hash(user['password_hash'], password):
-        return user
-    return None
