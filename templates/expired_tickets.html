@@ -32,12 +32,12 @@
     <div class="row">
       {% for booking in bookings %}
         <div class="col-12 mb-4">
-          <div class="card booking-card clickable-booking expired-ticket" data-booking-url="{{ url_for('booking_tickets', booking_id=booking.id) }}">
+          <div class="card booking-card clickable-booking" data-booking-url="{{ url_for('booking_tickets', booking_id=booking.id) }}">
             <div class="card-body">
               <div class="row align-items-center">
                 <!-- Movie Information -->
                 <div class="col-md-4">
-                  <h5 class="card-title text-secondary mb-2">
+                  <h5 class="card-title text-primary mb-2">
                     <i class="fas fa-film me-2"></i>
                     {{ booking.movie_name }}
                   </h5>
@@ -58,7 +58,7 @@
                   <div class="showing-info">
                     <div class="mb-2">
                       <strong>
-                        <i class="fas fa-calendar me-2 text-secondary"></i>
+                        <i class="fas fa-calendar me-2 text-primary"></i>
                         {{ booking.date.strftime('%A, %B %d, %Y') }}
                       </strong>
                     </div>
@@ -82,11 +82,8 @@
                         ID: #{{ booking.id }}
                       </span>
                     </div>
-                    <div class="mb-2">
-                      <span class="badge bg-danger">Expired</span>
-                    </div>
                     <div class="price mb-3">
-                      <h4 class="text-muted mb-0">
+                      <h4 class="text-success mb-0">
                         €{{ "%.2f"|format(booking.price) }}
                       </h4>
                     </div>
@@ -151,52 +148,6 @@
     </div>
   {% endif %}
 </div>
-
-<style>
-.empty-state {
-  max-width: 400px;
-  margin: 0 auto;
-}
-
-.badge {
-  font-size: 12px;
-}
-
-.card-title {
-  font-size: 1.1rem;
-  font-weight: 600;
-}
-
-.btn-sm {
-  font-size: 12px;
-  padding: 4px 8px;
-}
-
-/* Clickable booking card styles */
-.clickable-booking {
-  cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.clickable-booking:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-}
-
-/* Expired ticket specific styling */
-.expired-ticket {
-  opacity: 0.8;
-  border-left: 4px solid #dc3545;
-}
-
-.expired-ticket .card-title {
-  color: #6c757d !important;
-}
-
-.expired-ticket:hover {
-  opacity: 1;
-}
-</style>
 
 <script>
 // Add some interactivity for better UX

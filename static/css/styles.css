@@ -1201,3 +1201,75 @@ h2 {
   height: 20px;
   object-fit: contain;
 }
+
+/* ================================
+   TICKET PAGES STYLES
+   ================================ */
+
+/* Booking card styles */
+.booking-card {
+  border-left: 4px solid #007bff;
+  transition: all 0.3s ease;
+  border: 1px solid #e9ecef;
+}
+
+.booking-card:hover {
+  background-color: var(--bs-light);
+}
+
+.showing-info {
+  padding-left: 20px;
+  border-left: 2px solid #e9ecef;
+}
+
+.booking-details {
+  text-align: right;
+}
+
+/* Clickable booking card styles */
+.clickable-booking {
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.clickable-booking:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+/* Empty state for tickets pages */
+.empty-state {
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+/* Ticket page specific styling */
+.booking-card .badge {
+  font-size: 12px;
+}
+
+.booking-card .card-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.booking-card .btn-sm {
+  font-size: 12px;
+  padding: 4px 8px;
+}
+
+/* Responsive styles for ticket pages */
+@media (max-width: 768px) {
+  .booking-details {
+    text-align: left;
+    margin-top: 20px;
+  }
+  
+  .showing-info {
+    padding-left: 0;
+    border-left: none;
+    border-top: 2px solid #e9ecef;
+    padding-top: 15px;
+    margin-top: 15px;
+  }
+}
