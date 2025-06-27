@@ -45,17 +45,16 @@
                 <div class="card movie-card h-100">
                     <div class="card-body p-3">
                         <!-- Top Section: Poster + Movie Info -->
-                        <div class="d-flex flex-row mb-3" style="min-height: 180px;">
+                        <div class="d-flex flex-row mb-3">
                             <!-- Movie Poster -->
-                            <div class="movie-poster-container align-self-stretch" style="flex: 0 0 120px; max-width: 120px;">
+                            <div class="movie-poster-container d-flex justify-content-center align-items-start" style="width: 140px; min-width: 140px;">
                                 {% if movie.poster %}
                                 <img src="{{ url_for('serve_poster', poster_id=movie.poster.id) }}" 
                                         alt="{{ movie.name }} poster" 
-                                        class="img-fluid h-100 w-100"
-                                        style="object-fit: cover; border-radius: 0.5rem;">
+                                        style="width: 140px; height: 100%; object-fit: cover; border-radius: 0.5rem;">
                                 {% else %}
-                                <div class="h-100 w-100 d-flex align-items-center justify-content-center bg-light"
-                                        style="border-radius: 0.5rem;">
+                                <div class="d-flex align-items-center justify-content-center bg-light"
+                                        style="width: 140px; aspect-ratio: 2/3; border-radius: 0.5rem;">
                                     <i class="fas fa-film fa-2x text-muted"></i>
                                 </div>
                                 {% endif %}
@@ -83,19 +82,19 @@
                                 </p>
                                 
                                 <!-- Cast -->
-                                <p class="mb-3">
+                                <p class="mb-0">
                                     <strong>Cast:</strong> 
                                     <span class="text-muted">{{ movie.cast }}</span>
                                 </p>
-                                
-                                <!-- Synopsis -->
-                                <div class="flex-grow-1">
-                                    <h6 class="fw-bold mb-2">Synopsis</h6>
-                                    <p class="card-text text-muted small">
-                                        {{ movie.synopsis }}
-                                    </p>
-                                </div>
                             </div>
+                        </div>
+                        
+                        <!-- Middle Section: Synopsis -->
+                        <div class="synopsis-section mb-3">
+                            <h6 class="fw-bold mb-2">Synopsis</h6>
+                            <p class="card-text text-muted small mb-0">
+                                {{ movie.synopsis }}
+                            </p>
                         </div>
                         
                         <!-- Bottom Section: Showings -->
@@ -240,7 +239,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const dateButton = document.createElement('button');
             dateButton.className = `flex-shrink-0 date-btn ${isToday ? 'active' : ''}`;
             dateButton.dataset.date = dateInfo.fullDate;
-            dateButton.style.minWidth = '120px';
+            dateButton.style.minWidth = '140px';
             
             if (index <= 1) {
                 // Today and Tomorrow
@@ -468,9 +467,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="card movie-card h-100">
                         <div class="card-body p-3">
                             <!-- Top Section: Poster + Movie Info -->
-                            <div class="d-flex flex-row mb-3" style="min-height: 180px;">
+                            <div class="d-flex flex-row mb-3">
                                 <!-- Movie Poster -->
-                                <div class="movie-poster-container align-self-stretch" style="flex: 0 0 120px; max-width: 120px;">
+                                <div class="movie-poster-container d-flex justify-content-center align-items-start" style="width: 140px; min-width: 140px;">
                                     ${posterHTML}
                                 </div>
                                 
@@ -496,19 +495,19 @@ document.addEventListener('DOMContentLoaded', function() {
                                     </p>
                                     
                                     <!-- Cast -->
-                                    <p class="mb-3">
+                                    <p class="mb-0">
                                         <strong>Cast:</strong> 
                                         <span class="text-muted">${movie.cast}</span>
                                     </p>
-                                    
-                                    <!-- Synopsis -->
-                                    <div class="flex-grow-1">
-                                        <h6 class="fw-bold mb-2">Synopsis</h6>
-                                        <p class="card-text text-muted small">
-                                            ${movie.synopsis}
-                                        </p>
-                                    </div>
                                 </div>
+                            </div>
+                            
+                            <!-- Middle Section: Synopsis -->
+                            <div class="synopsis-section mb-3">
+                                <h6 class="fw-bold mb-2">Synopsis</h6>
+                                <p class="card-text text-muted small mb-0">
+                                    ${movie.synopsis}
+                                </p>
                             </div>
                             
                             <!-- Bottom Section: Showings -->
