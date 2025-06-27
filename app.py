@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, abort
 from src.config import get_config
 from src.session_manager import init_session_manager
-from src.middleware import init_middleware, login_required, logout_required
+from src.middleware import init_middleware, login_required, logout_required, booking_login_required
 from src.error_handlers import init_error_handlers
 from src.logging_config import init_logging
 from src.database import (
@@ -174,7 +174,8 @@ def login():
     
     # GET request - show login form
     # Store the referrer URL in session for redirect after login (only if it's not an auth page)
-    if request.referrer and not is_auth_page(request.referrer):
+    # BUT don't overwrite if we already have a stored non-auth page (e.g., from booking_login_required)
+    if request.referrer and not is_auth_page(request.referrer) and 'last_non_auth_page' not in session:
         session['last_non_auth_page'] = request.referrer
     
     return render_template('login.html')
@@ -425,6 +426,7 @@ def settings():
         return redirect(url_for('index'))
 
 @app.route('/showing/<int:showing_id>/seats')
+@booking_login_required
 def showing_seats(showing_id):
     """Display seat selection page for a showing"""
     try:
@@ -460,6 +462,7 @@ def showing_seats(showing_id):
         return redirect(url_for('movies'))
 
 @app.route('/booking/spectators', methods=['POST'])
+@booking_login_required
 def booking_spectators():
     """Handle spectator information entry"""
     try:
@@ -522,6 +525,7 @@ def booking_spectators():
         return redirect(url_for('movies'))
 
 @app.route('/api/calculate_price', methods=['POST'])
+@booking_login_required
 def calculate_price():
     """API endpoint to calculate booking price on the server side"""
     try:
@@ -586,6 +590,7 @@ def calculate_price():
         return jsonify({'success': False, 'error': f'Server error: {str(e)}'})
 
 @app.route('/booking/confirm', methods=['POST'])
+@booking_login_required
 def booking_confirm():
     """Process the complete booking"""
     try:
@@ -698,6 +703,7 @@ def booking_confirm():
         return redirect(url_for('movies'))
 
 @app.route('/booking/<int:booking_id>/tickets')
+@booking_login_required
 def booking_tickets(booking_id):
     """Display booking confirmation and tickets"""
     try:

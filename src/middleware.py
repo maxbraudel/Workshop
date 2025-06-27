@@ -64,6 +64,19 @@ def logout_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+def booking_login_required(f):
+    """Decorator to require login for booking routes with specific message."""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not validate_user_session():
+            # Store the current booking URL as the last non-auth page for redirect after login
+            from flask import request, session
+            session['last_non_auth_page'] = request.url
+            flash('You must be logged in to buy a ticket.', 'error')
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
 def init_middleware(app):
     """Initialize middleware with Flask app."""
     
